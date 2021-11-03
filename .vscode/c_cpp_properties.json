@@ -2,15 +2,18 @@
     "configurations": [
         {
             "name": "Win32",
+             //double **  = recursively through folder
             "includePath": [
-                "${workspaceFolder}/**" //double **  = recursively through folder 
+                "${workspaceFolder}/**" 
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE",
                 "-DUSE_HAL_DRIVER",
-                "-DSTM32F407xx"
+                "-DSTM32F407xx",
+                "STM32F407xx",
+                "USE_HAL_DRIVER"
             ],
             "windowsSdkVersion": "10.0.18362.0",
             //"compilerPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Tools\\MSVC\\14.16.27023\\bin\\Hostx64\\x64\\cl.exe",
