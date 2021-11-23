@@ -2,7 +2,8 @@
     "stm32-for-vscode.openOCDPath": "E:\\TOOLS\\PROGRAMMING\\STM32 TOOLCHAIN\\OPENOCD-20210729\\OPENOCD-20210729-0.11.0\\BIN\\OPENOCD.EXE",
     "stm32-for-vscode.makePath": "E:\\TOOLS\\PROGRAMMING\\STM32 TOOLCHAIN\\MAKE-3.81\\BIN\\MAKE.EXE",
     "files.associations": {
-        "main.h": "c"
+        "main.h": "c",
+        "ssd1306_tests.h": "c"
     },
     "cortex-debug.armToolchainPath": "E:\\TOOLS\\PROGRAMMING\\GNU ARM EMBEDDED TOOLCHAIN\\10 2020-Q4-MAJOR\\BIN",
     "cortex-debug.openocdPath": "E:\\TOOLS\\PROGRAMMING\\STM32 TOOLCHAIN\\OPENOCD-20210729\\OPENOCD-20210729-0.11.0\\BIN\\OPENOCD.EXE"

@@ -21,9 +21,12 @@
 #include "main.h"
 #include "usb_host.h"
 
+
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "ssd1306.h"
+#include "ssd1306_tests.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -123,6 +126,7 @@ int main(void)
 	
 	HAL_GPIO_TogglePin(led_orange_GPIO_Port,led_orange_Pin);
 	HAL_Delay(500);
+    ssd1306_TestAll();
     
   }
   /* USER CODE END 3 */
