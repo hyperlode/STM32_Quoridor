@@ -169,6 +169,7 @@ void ssd1306_TestFonts() {
 }
 
 void ssd1306_TestFPS() {
+
     ssd1306_Fill(White);
    
     uint32_t start = HAL_GetTick();
@@ -192,6 +193,7 @@ void ssd1306_TestFPS() {
 
         fps++;
         end = HAL_GetTick();
+        // HAL_Delay(1);
     } while((end - start) < 5000);
    
     HAL_Delay(5000);
@@ -272,8 +274,12 @@ void ssd1306_TestDrawBitmap()
     ssd1306_UpdateScreen();
 }
 
+void ssd1306_TestLode(){
+}
+
 void ssd1306_TestAll() {
     ssd1306_Init();
+    // ssd1306_TestLode();
     ssd1306_TestFPS();
     HAL_Delay(3000);
     ssd1306_TestBorder();

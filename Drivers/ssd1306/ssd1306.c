@@ -174,7 +174,7 @@ void ssd1306_Init(void) {
 
 // Fill the whole screen with the given color
 void ssd1306_Fill(SSD1306_COLOR color) {
-    /* Set memory */
+    /* Set memory */  
     uint32_t i;
 
     for(i = 0; i < sizeof(SSD1306_Buffer); i++) {
