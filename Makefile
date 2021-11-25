@@ -72,6 +72,7 @@ Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
 Drivers/ssd1306/ssd1306_tests.c \
 Drivers/ssd1306/ssd1306.c \
+Core/Src/quoridor_board.c \
 Drivers/ssd1306/ssd1306_fonts.c \
 Core/Src/system_stm32f4xx.c \
 Middlewares/ST/STM32_USB_Host_Library/Core/Src/usbh_core.c \

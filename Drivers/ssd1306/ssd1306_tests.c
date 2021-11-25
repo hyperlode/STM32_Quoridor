@@ -275,6 +275,8 @@ void ssd1306_TestDrawBitmap()
 }
 
 void ssd1306_TestLode(){
+    // ssd1306_Line(x1,y1,x2,y1,color);
+
 }
 
 void ssd1306_TestAll() {

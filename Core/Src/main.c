@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "ssd1306.h"
 #include "ssd1306_tests.h"
+#include "quoridor_board.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -104,19 +105,75 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-//   MX_I2C1_Init();
-//   MX_I2S3_Init();
-//   MX_SPI1_Init();
-//   MX_USB_HOST_Init();
-//   MX_TIM2_Init();
+  MX_I2C1_Init();
+  MX_I2S3_Init();
+  MX_SPI1_Init();
+  MX_USB_HOST_Init();
+  MX_TIM2_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
-//   HAL_TIM_Base_Start_IT(&htim2);
+  HAL_TIM_Base_Start_IT(&htim2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  oled_init();
   
+  uint8_t player_1_pos [2] = {0,4};
+  uint8_t player_2_pos [2] = {8,4};
+  uint8_t player_1_walls [30] = {
+      8,1,0,
+      8,2,0,
+      8,3,0,
+      8,4,0,
+      8,5,0,
+      8,6,0,
+      8,7,0,
+      8,8,0,
+      6,1,0,
+      6,8,0
+      };
+  uint8_t player_2_walls [30] = {
+      1,1, 0,
+      1,2, 0,
+      1,3, 0,
+      1,4, 0,
+      1,5, 0,
+      1,6, 0,
+      1,7, 0,
+      1,8, 0,
+      3,1, 0,
+      3,8, 0
+      };
+//   uint8_t player_1_walls [30] = {
+//       5,3,1,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0
+//       };
+//   uint8_t player_2_walls [30] = {
+//       5,3,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0
+//       };
+
+  game_init();
+
+  board_state_update(player_1_pos, player_2_pos, player_1_walls, player_2_walls);
+  board_state_draw();
   while (1)
   {
     /* USER CODE END WHILE */
@@ -125,8 +182,9 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	
 	HAL_GPIO_TogglePin(led_orange_GPIO_Port,led_orange_Pin);
-	HAL_Delay(500);
-    ssd1306_TestAll();
+	HAL_Delay(1000);
+    // ssd1306_TestAll();
+    // board_draw_refresh();
     
   }
   /* USER CODE END 3 */
@@ -459,8 +517,12 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+
+    if (htim->Instance == TIM2){
+        HAL_GPIO_WritePin(led_red_GPIO_Port,led_red_Pin,GPIO_PIN_SET);
+    }
+
  
-  HAL_GPIO_WritePin(led_red_GPIO_Port,led_red_Pin,GPIO_PIN_SET);
   
 }
 /* USER CODE END 4 */
@@ -474,6 +536,7 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
+
   while (1)
   {
   }
