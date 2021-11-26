@@ -28,6 +28,9 @@
 #include "ssd1306.h"
 #include "ssd1306_tests.h"
 #include "quoridor_board.h"
+#include "quoridor_gameplay.h"
+#include "quoridor.h"
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -118,62 +121,81 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   oled_init();
-  
-  uint8_t player_1_pos [2] = {0,4};
-  uint8_t player_2_pos [2] = {8,4};
-  uint8_t player_1_walls [30] = {
-      8,1,0,
-      8,2,0,
-      8,3,0,
-      8,4,0,
-      8,5,0,
-      8,6,0,
-      8,7,0,
-      8,8,0,
-      6,1,0,
-      6,8,0
-      };
-  uint8_t player_2_walls [30] = {
-      1,1, 0,
-      1,2, 0,
-      1,3, 0,
-      1,4, 0,
-      1,5, 0,
-      1,6, 0,
-      1,7, 0,
-      1,8, 0,
-      3,1, 0,
-      3,8, 0
-      };
+  uint8_t players_positions[2][2];
+//   uint8_t player_1_pos [2] = {0,4};
+//   uint8_t player_2_pos [2] = {8,4};
 //   uint8_t player_1_walls [30] = {
-//       5,3,1,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0
+//       8,1,0,
+//       8,2,0,
+//       8,3,0,
+//       8,4,0,
+//       8,5,0,
+//       8,6,0,
+//       8,7,0,
+//       8,8,0,
+//       6,1,0,
+//       6,8,0
 //       };
 //   uint8_t player_2_walls [30] = {
-//       5,3,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0
+//       1,1, 0,
+//       1,2, 0,
+//       1,3, 0,
+//       1,4, 0,
+//       1,5, 0,
+//       1,6, 0,
+//       1,7, 0,
+//       1,8, 0,
+//       3,1, 0,
+//       3,8, 0
 //       };
+  uint8_t player_1_walls [30] = {
+      0,0,0,
+      0,0,0,
+      0,0,0,
+      0,0,0,
+      0,0,0,
+      0,0,0,
+      0,0,0,
+      0,0,0,
+      0,0,0,
+      0,0,0
+      };
+  uint8_t player_2_walls [30] = {
+      0,0,0,
+      0,0,0,
+      0,0,0,
+      0,0,0,
+      0,0,0,
+      0,0,0,
+      0,0,0,
+      0,0,0,
+      0,0,0,
+      0,0,0
+      };
+
+  char moves [MAX_MOVES_COUNT] = "W,E,N,S,N,S";
 
   game_init();
+  moves_string_to_moves(moves);
+//   char d [2] = "NN";
+//   pawn_set_position_by_direction(0, d);
+//   strcpy(d, "EE");
+//   pawn_set_position_by_direction(0, d);
+//   strcpy(d, "WW");
+//   pawn_set_position_by_direction(0, d);
+//   strcpy(d, "SS");
+//   pawn_set_position_by_direction(0, d);
 
-  board_state_update(player_1_pos, player_2_pos, player_1_walls, player_2_walls);
-  board_state_draw();
+    for (uint8_t move_counter=0;move_counter<MAX_MOVES_COUNT;move_counter++){
+        pawn_get_position(players_positions[0], 0);
+        pawn_get_position(players_positions[1], 1);
+
+        board_state_update(players_positions[0],players_positions[1], player_1_walls, player_2_walls);
+        board_state_draw();
+        move_next();
+        HAL_Delay(1000);
+    }
+
   while (1)
   {
     /* USER CODE END WHILE */

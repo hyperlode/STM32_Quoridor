@@ -1,9 +1,9 @@
 #include <string.h>
 #include <stdio.h>
 #include "ssd1306.h"
-
+#include "quoridor.h"
 #include "quoridor_board.h"
-
+  
 void oled_init(){
     ssd1306_Init();
 }
@@ -27,36 +27,13 @@ void oled_init(){
 #define PAWN_HEIGHT 3 
 
 
-Player players [2];
+static Player players [2];
 
-Player player_1 ;
-Player player_2;
-
-
-
-void game_init(Moves ){
-    
-
-}
+// Player player_1 ;
+// Player player_2;
 
 void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* player_1_walls, uint8_t* player_2_walls){
-    
-    // player_1.pawn.row = player_1_pos[0];
-    // player_1.pawn.col = player_1_pos[1];
-    
-    // player_2.pawn.col = player_2_pos[0];
-    // player_2.pawn.col = player_2_pos[1];
-
-    // uint8_t* walls = &player_1.walls;
-    // for(uint8_t i=0;i<15;i++){
-    //     walls[i] = player_1_walls[i];
-    // }
-
-    // walls = &player_2.walls;
-    // for(uint8_t i=0;i<15;i++){
-    //     walls[i] = player_2_walls[i];
-    // }
-    
+   
     uint8_t* walls;
     uint8_t* input_walls;
 
@@ -105,8 +82,7 @@ void board_state_draw(){
     ssd1306_UpdateScreen();
 }
 
-
-void board_draw_refresh(){
+void board_draw_test(){
     ssd1306_Fill(White);    
     board_draw_dots();
     board_draw_pawn(0,4,0);

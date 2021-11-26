@@ -4,30 +4,8 @@
 #include <_ansi.h>
 
 _BEGIN_STD_C
-struct Pawn{
-    uint8_t row;
-    uint8_t col;
-    uint8_t fill;    
-};
 
-struct Wall{
-    uint8_t row;
-    uint8_t col;
-    uint8_t horizontal_else_vertical;
-};
-
-struct Player{
-    struct Pawn pawn;
-    struct Wall walls [10];
-};
-
-
-typedef struct Player Player;
-
-
-
-
-void board_draw_refresh();
+void board_draw_test();
 void board_draw_lines(void);
 void board_draw_dots(void);
 void board_draw_pawn(uint8_t row, uint8_t col, uint8_t fill);
