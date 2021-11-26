@@ -122,6 +122,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   oled_init();
   uint8_t players_positions[2][2];
+  uint8_t players_walls[2][30];
 //   uint8_t player_1_pos [2] = {0,4};
 //   uint8_t player_2_pos [2] = {8,4};
 //   uint8_t player_1_walls [30] = {
@@ -148,49 +149,56 @@ int main(void)
 //       3,1, 0,
 //       3,8, 0
 //       };
-  uint8_t player_1_walls [30] = {
-      0,0,0,
-      0,0,0,
-      0,0,0,
-      0,0,0,
-      0,0,0,
-      0,0,0,
-      0,0,0,
-      0,0,0,
-      0,0,0,
-      0,0,0
-      };
-  uint8_t player_2_walls [30] = {
-      0,0,0,
-      0,0,0,
-      0,0,0,
-      0,0,0,
-      0,0,0,
-      0,0,0,
-      0,0,0,
-      0,0,0,
-      0,0,0,
-      0,0,0
-      };
+//   uint8_t player_1_walls [30] = {
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0
+//       };
+//   uint8_t player_2_walls [30] = {
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0,
+//       0,0,0
+//       };
 
-  char moves [MAX_MOVES_COUNT] = "W,E,N,S,N,S";
+//   char moves [MAX_MOVES_COUNT] = "8e,SE,N,S,N,S";
+//    char moves [MAX_MOVES_COUNT] = "2e,e4,b3,3h,1c,S";
+   char moves [MAX_MOVES_COUNT] = "N,S,N,S,N,S,2d,4d,2f,E,2b,a1,E,E,N,5f,E,E,2h,g4,c5,S,c3,N,c7,8b,3h,W,W,W,W,N,N,6d,f6,N,E,W,N,7e,W,N,W,8d,f8,W,N,W,E,W,E,W,N";
+//    char moves [MAX_MOVES_COUNT] = "3h,b3"; //b3ok
+// 
 
   game_init();
   moves_string_to_moves(moves);
+
 //   char d [2] = "NN";
-//   pawn_set_position_by_direction(0, d);
+//   pawn_move_by_notation(0, d);
 //   strcpy(d, "EE");
-//   pawn_set_position_by_direction(0, d);
+//   pawn_move_by_notation(0, d);
 //   strcpy(d, "WW");
-//   pawn_set_position_by_direction(0, d);
+//   pawn_move_by_notation(0, d);
 //   strcpy(d, "SS");
-//   pawn_set_position_by_direction(0, d);
+//   pawn_move_by_notation(0, d);
 
     for (uint8_t move_counter=0;move_counter<MAX_MOVES_COUNT;move_counter++){
         pawn_get_position(players_positions[0], 0);
         pawn_get_position(players_positions[1], 1);
+        walls_get_positions(players_walls[0],0);
+        walls_get_positions(players_walls[1],1);
 
-        board_state_update(players_positions[0],players_positions[1], player_1_walls, player_2_walls);
+        board_state_update(players_positions[0],players_positions[1], players_walls[0], players_walls[1]);
         board_state_draw();
         move_next();
         HAL_Delay(1000);

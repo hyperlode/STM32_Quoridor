@@ -21,6 +21,7 @@ struct Wall{
 struct Player{
     struct Pawn pawn;
     struct Wall walls [10];
+    uint8_t walls_placed;
 };
 
 
