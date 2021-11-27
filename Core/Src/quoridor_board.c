@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "ssd1306.h"
-#include "quoridor.h"
+#include "quoridor_config.h"
 #include "quoridor_board.h"
   
 void oled_init(){
@@ -28,15 +28,14 @@ void oled_init(){
 
 
 static Player players [2];
+static uint8_t move_counter_b;
 
-// Player player_1 ;
-// Player player_2;
-
-void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* player_1_walls, uint8_t* player_2_walls, uint8_t* distances_to_win){
+void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* player_1_walls, uint8_t* player_2_walls, uint8_t* distances_to_win, uint8_t move_counter_a){
    
     uint8_t* walls;
     uint8_t* input_walls;
 
+    move_counter_b = move_counter_a;
     for (uint8_t player=0;player<2;player++){
         if (player == 0){
             players[0].pawn.row = player_1_pos[0];
@@ -60,7 +59,6 @@ void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* p
             tmp->col = input_walls[i*3 + 1];
             tmp->horizontal_else_vertical = input_walls[i*3 + 2];
         }
-
     }
 }
 
@@ -79,24 +77,30 @@ void board_state_draw(){
                 1);
         }
     }
-    ssd1306_SetCursor(70, 5);
+    ssd1306_SetCursor(70, 1);
 
     ssd1306_WriteString("Dist 1:", Font_7x10, Black);
 
     char* distance_player_1 [2];
     snprintf(distance_player_1, sizeof(distance_player_1), "%d", players[0].distance_to_win);
     
-    ssd1306_SetCursor(70, 16);
+    ssd1306_SetCursor(70, 12);
     ssd1306_WriteString(distance_player_1, Font_7x10, Black);
 
     char* distance_player_2 [2];
     snprintf(distance_player_2, sizeof(distance_player_2), "%d", players[1].distance_to_win);
 
-
-    ssd1306_SetCursor(70, 30);
+    ssd1306_SetCursor(70, 26);
     ssd1306_WriteString("Dist 2:", Font_7x10, Black);
-    ssd1306_SetCursor(70, 41);
+    ssd1306_SetCursor(70, 37);
     ssd1306_WriteString(distance_player_2, Font_7x10, Black);
+
+    char* move_counter_text [2];
+    snprintf(move_counter_text, sizeof(move_counter_text), "Mo: %d", move_counter_b);
+
+    ssd1306_SetCursor(70, 48);
+    ssd1306_WriteString(move_counter_text, Font_7x10, Black);
+
      
     board_draw_outline();  // save for last to overwrite wall placement white dots.
     ssd1306_UpdateScreen();

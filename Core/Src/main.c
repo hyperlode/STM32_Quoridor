@@ -25,8 +25,6 @@
 /* USER CODE BEGIN Includes */
 #include "ssd1306.h"
 #include "ssd1306_tests.h"
-#include "quoridor_board.h"
-#include "quoridor_gameplay.h"
 #include "quoridor.h"
 #include <string.h>
 /* USER CODE END Includes */
@@ -119,87 +117,24 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   oled_init();
-  uint8_t distances_to_end[2];
-  uint8_t players_positions[2][2];
-  uint8_t players_walls[2][30];
+
 
   uint8_t button_pressed_edge_memory;
 
-//   char moves [MAX_MOVES_COUNT] = "8e,SE,N,S,N,S";
-//    char moves [MAX_MOVES_COUNT] = "2e,e4,b3,3h,1c,S";
-   char moves [MAX_MOVES_COUNT] = "N,S,N,S,N,S,2d,4d,2f,E,2b,a1,E,E,N,5f,E,E,2h,g4,c5,S,c3,N,c7,8b,3h,W,W,W,W,N,N,6d,f6,N,E,W,N,7e,W,N,W,8d,f8,W,N,W,E,W,E,W,N";
-//    char moves [MAX_MOVES_COUNT] = "3h,b3"; //b3ok
-// 
-
-  game_init();
-  moves_string_to_moves(moves);
-
-//   char d [2] = "NN";
-//   pawn_move_by_notation(0, d);
-//   strcpy(d, "EE");
-//   pawn_move_by_notation(0, d);
-//   strcpy(d, "WW");
-//   pawn_move_by_notation(0, d);
-//   strcpy(d, "SS");
-//   pawn_move_by_notation(0, d);
-  
-
-
-    // for (uint8_t move_counter=0;move_counter<MAX_MOVES_COUNT;move_counter++){
-
-    //   pawn_get_position(players_positions[0], 0);
-    //   pawn_get_position(players_positions[1], 1);
-      
-    //   distances_to_end[0] = dijkstra(pawn_get_position_as_square_index(0), 0);
-    //   distances_to_end[1] = dijkstra(pawn_get_position_as_square_index(1), 1);
-      
-    //   walls_get_positions(players_walls[0],0);
-    //   walls_get_positions(players_walls[1],1);
-
-    //   board_state_update(players_positions[0],players_positions[1], players_walls[0], players_walls[1], distances_to_end);
-    //   board_state_draw();
-    //   move_next();
-    //   HAL_Delay(500);
-    // }
-
-  pawn_get_position(players_positions[0], 0);
-  pawn_get_position(players_positions[1], 1);
-  
-  distances_to_end[0] = dijkstra(pawn_get_position_as_square_index(0), 0);
-  distances_to_end[1] = dijkstra(pawn_get_position_as_square_index(1), 1);
-  
-  walls_get_positions(players_walls[0],0);
-  walls_get_positions(players_walls[1],1);
-
-  board_state_update(players_positions[0],players_positions[1], players_walls[0], players_walls[1], distances_to_end);
-  board_state_draw();
+  char moves_lode_notation [MOVES_STRING_LENGTH] = "N,S,N,S,N,S,2d,4d,2f,E,2b,a1,E,E,N,5f,E,E,2h,g4,c5,S,c3,N,c7,8b,3h,W,W,W,W,N,N,6d,f6,N,E,W,N,7e,W,N,W,8d,f8,W,N,W,E,W,E,W,N";
+  replay_game_init(moves_lode_notation);
 
   while (1)
   {
     if(HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_0) != button_pressed_edge_memory && HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_0)){
       // HAL_GPIO_WritePin(led_orange_GPIO_Port,led_orange_Pin, GPIO_PIN_SET);
       HAL_GPIO_TogglePin(led_orange_GPIO_Port,led_orange_Pin);
-      
-      if (get_move_counter() > 24 ){
+      if (get_move_counter() > 51){
+
         get_move_counter();
       }
+      replay_game_next_move();
       
-      move_next();
-
-
-      pawn_get_position(players_positions[0], 0);
-      pawn_get_position(players_positions[1], 1);
-      
-      distances_to_end[0] = dijkstra(pawn_get_position_as_square_index(0), 0);
-      distances_to_end[1] = dijkstra(pawn_get_position_as_square_index(1), 1);
-      
-      walls_get_positions(players_walls[0],0);
-      walls_get_positions(players_walls[1],1);
-
-      board_state_update(players_positions[0],players_positions[1], players_walls[0], players_walls[1], distances_to_end);
-      board_state_draw();
-  
-
 
     }else{
       // HAL_GPIO_WritePin(led_orange_GPIO_Port,led_orange_Pin, GPIO_PIN_RESET);

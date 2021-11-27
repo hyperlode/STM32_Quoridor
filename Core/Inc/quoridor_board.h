@@ -10,7 +10,7 @@ void board_draw_lines(void);
 void board_draw_dots(void);
 void board_draw_pawn(uint8_t row, uint8_t col, uint8_t fill);
 void oled_init(void);
-void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* player_1_walls, uint8_t* player_2_walls, uint8_t* distances_to_win);
+void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* player_1_walls, uint8_t* player_2_walls, uint8_t* distances_to_win, uint8_t move_counter_a);
 void board_state_draw();
 
 _END_STD_C
