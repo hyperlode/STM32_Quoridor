@@ -77,6 +77,25 @@ void board_state_draw(){
                 1);
         }
     }
+    ssd1306_SetCursor(70, 5);
+
+    ssd1306_WriteString("Dist 1:", Font_7x10, Black);
+
+    char* distance_player_1 [2];
+    snprintf(distance_player_1, sizeof(distance_player_1), "%d", 24);
+    
+    ssd1306_SetCursor(70, 16);
+    ssd1306_WriteString(distance_player_1, Font_7x10, Black);
+
+
+    char* distance_player_2 [2];
+    snprintf(distance_player_2, sizeof(distance_player_2), "%d", 15);
+
+
+    ssd1306_SetCursor(70, 30);
+    ssd1306_WriteString("Dist 2:", Font_7x10, Black);
+    ssd1306_SetCursor(70, 41);
+    ssd1306_WriteString(distance_player_2, Font_7x10, Black);
      
     board_draw_outline();  // save for last to overwrite wall placement white dots.
     ssd1306_UpdateScreen();

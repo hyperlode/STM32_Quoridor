@@ -201,7 +201,7 @@ int main(void)
         board_state_update(players_positions[0],players_positions[1], players_walls[0], players_walls[1]);
         board_state_draw();
         move_next();
-        HAL_Delay(1000);
+        HAL_Delay(500);
     }
 
   while (1)
