@@ -121,6 +121,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   oled_init();
+  uint8_t distances_to_end[2];
   uint8_t players_positions[2][2];
   uint8_t players_walls[2][30];
 //   uint8_t player_1_pos [2] = {0,4};
@@ -191,17 +192,24 @@ int main(void)
 //   pawn_move_by_notation(0, d);
 //   strcpy(d, "SS");
 //   pawn_move_by_notation(0, d);
+  
+
 
     for (uint8_t move_counter=0;move_counter<MAX_MOVES_COUNT;move_counter++){
-        pawn_get_position(players_positions[0], 0);
-        pawn_get_position(players_positions[1], 1);
-        walls_get_positions(players_walls[0],0);
-        walls_get_positions(players_walls[1],1);
 
-        board_state_update(players_positions[0],players_positions[1], players_walls[0], players_walls[1]);
-        board_state_draw();
-        move_next();
-        HAL_Delay(500);
+      pawn_get_position(players_positions[0], 0);
+      pawn_get_position(players_positions[1], 1);
+      
+      distances_to_end[0] = dijkstra(pawn_get_position_as_square_index(0), 0);
+      distances_to_end[1] = dijkstra(pawn_get_position_as_square_index(1), 1);
+      
+      walls_get_positions(players_walls[0],0);
+      walls_get_positions(players_walls[1],1);
+
+      board_state_update(players_positions[0],players_positions[1], players_walls[0], players_walls[1], distances_to_end);
+      board_state_draw();
+      move_next();
+      HAL_Delay(500);
     }
 
   while (1)

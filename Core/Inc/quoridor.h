@@ -20,6 +20,7 @@ struct Wall{
 
 struct Player{
     struct Pawn pawn;
+    uint8_t distance_to_win;
     struct Wall walls [10];
     uint8_t walls_placed;
 };

@@ -32,7 +32,7 @@ static Player players [2];
 // Player player_1 ;
 // Player player_2;
 
-void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* player_1_walls, uint8_t* player_2_walls){
+void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* player_1_walls, uint8_t* player_2_walls, uint8_t* distances_to_win){
    
     uint8_t* walls;
     uint8_t* input_walls;
@@ -43,12 +43,14 @@ void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* p
             players[0].pawn.col = player_1_pos[1];
             players[0].pawn.fill = 0;
             input_walls = player_1_walls;
+            players[0].distance_to_win = distances_to_win[0];
                       
         }else{
             players[1].pawn.row = player_2_pos[0];
             players[1].pawn.col = player_2_pos[1];
             players[1].pawn.fill = 1;
             input_walls = player_2_walls;
+            players[1].distance_to_win = distances_to_win[1];
         }
 
         struct Wall* tmp;
@@ -82,14 +84,13 @@ void board_state_draw(){
     ssd1306_WriteString("Dist 1:", Font_7x10, Black);
 
     char* distance_player_1 [2];
-    snprintf(distance_player_1, sizeof(distance_player_1), "%d", 24);
+    snprintf(distance_player_1, sizeof(distance_player_1), "%d", players[0].distance_to_win);
     
     ssd1306_SetCursor(70, 16);
     ssd1306_WriteString(distance_player_1, Font_7x10, Black);
 
-
     char* distance_player_2 [2];
-    snprintf(distance_player_2, sizeof(distance_player_2), "%d", 15);
+    snprintf(distance_player_2, sizeof(distance_player_2), "%d", players[1].distance_to_win);
 
 
     ssd1306_SetCursor(70, 30);
