@@ -14,6 +14,7 @@ _BEGIN_STD_C
 #define BYTE_INFINITY 0xFF
 
 uint8_t index_from_row_col(uint8_t row, uint8_t col);
+uint8_t row_col_to_square_index(uint8_t row, uint8_t col);
 
 void game_init(void);
 _END_STD_C

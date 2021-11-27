@@ -66,9 +66,68 @@ void game_init(void){
             index++;
         }
     }
+
     board_graph;
     move_counter = 0;
 
+}
+uint8_t get_move_counter(){
+    return move_counter;
+}
+
+void add_wall_to_board_graph(uint8_t row, uint8_t col, uint8_t horizontal_else_vertical){
+    // set_wall_by_row_col();
+    uint8_t base_square;
+    base_square = row_col_to_square_index(row,col);
+
+    if (horizontal_else_vertical){
+        disconnect_nodes(base_square, base_square - 9);
+        disconnect_nodes(base_square - 1, base_square - 1 - 9);
+        // disconnect_nodes(base_square, base_square + 9);
+        // disconnect_nodes(base_square - 1, base_square - 1 + 9);
+    }else{
+        disconnect_nodes(base_square, base_square + 1);
+        disconnect_nodes(base_square - 9, base_square + 1 - 9);
+    }
+}
+
+void disconnect_nodes(uint8_t node_1, uint8_t node_2){
+    delete_edge(node_1, node_2);
+    delete_edge(node_2, node_1);
+}
+
+void delete_edge(uint8_t start_node, uint8_t node_to_be_disconnected){
+
+    # define NOT_FOUND_INDEX 66
+    uint8_t i=0;
+    uint8_t delete_node_index = NOT_FOUND_INDEX;
+    uint8_t check_node;
+
+    do{
+        check_node = board_graph[start_node][i];
+        if (check_node == node_to_be_disconnected){
+            delete_node_index = i;
+            
+        }
+        i++;
+    }while(check_node != FAKE_NEIGHBOUR);
+
+
+    if (delete_node_index == NOT_FOUND_INDEX){
+        // NOT FOUND
+        return;
+    }
+
+    i--; // get last i right
+    i--; // get index of last valid node
+
+    if (i == delete_node_index){
+        // only one valid node available
+        
+    }else{
+        board_graph[start_node][delete_node_index] = board_graph[start_node][i]; 
+    }
+    board_graph[start_node][i] = FAKE_NEIGHBOUR;
 }
 
 void init_graph_node_get_neighbours(uint8_t row, uint8_t col, uint8_t* neighbours){
@@ -288,16 +347,19 @@ void wall_set_by_notation(uint8_t player, char* wall_position){
             // ERROR
             return;
         }
-        
-        players[player].walls[players[player].walls_placed].row = row;
-        players[player].walls[players[player].walls_placed].col = col;
-        players[player].walls[players[player].walls_placed].horizontal_else_vertical = horizontal_else_vertical;
-
     }
+    set_wall_by_row_col(player, row, col, horizontal_else_vertical);
+    add_wall_to_board_graph(row,col,horizontal_else_vertical);
     players[player].walls_placed ++;
       
     
 };
+
+void set_wall_by_row_col(uint8_t player, uint8_t row, uint8_t col, uint8_t horizontal_else_vertical){
+    players[player].walls[players[player].walls_placed].row = row;
+    players[player].walls[players[player].walls_placed].col = col;
+    players[player].walls[players[player].walls_placed].horizontal_else_vertical = horizontal_else_vertical;
+}
 
 void pawn_move_by_notation(uint8_t player, char* direction){
     // direction always two chars.

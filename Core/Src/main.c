@@ -21,8 +21,6 @@
 #include "main.h"
 #include "usb_host.h"
 
-
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ssd1306.h"
@@ -124,56 +122,8 @@ int main(void)
   uint8_t distances_to_end[2];
   uint8_t players_positions[2][2];
   uint8_t players_walls[2][30];
-//   uint8_t player_1_pos [2] = {0,4};
-//   uint8_t player_2_pos [2] = {8,4};
-//   uint8_t player_1_walls [30] = {
-//       8,1,0,
-//       8,2,0,
-//       8,3,0,
-//       8,4,0,
-//       8,5,0,
-//       8,6,0,
-//       8,7,0,
-//       8,8,0,
-//       6,1,0,
-//       6,8,0
-//       };
-//   uint8_t player_2_walls [30] = {
-//       1,1, 0,
-//       1,2, 0,
-//       1,3, 0,
-//       1,4, 0,
-//       1,5, 0,
-//       1,6, 0,
-//       1,7, 0,
-//       1,8, 0,
-//       3,1, 0,
-//       3,8, 0
-//       };
-//   uint8_t player_1_walls [30] = {
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0
-//       };
-//   uint8_t player_2_walls [30] = {
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0,
-//       0,0,0
-//       };
+
+  uint8_t button_pressed_edge_memory;
 
 //   char moves [MAX_MOVES_COUNT] = "8e,SE,N,S,N,S";
 //    char moves [MAX_MOVES_COUNT] = "2e,e4,b3,3h,1c,S";
@@ -195,7 +145,47 @@ int main(void)
   
 
 
-    for (uint8_t move_counter=0;move_counter<MAX_MOVES_COUNT;move_counter++){
+    // for (uint8_t move_counter=0;move_counter<MAX_MOVES_COUNT;move_counter++){
+
+    //   pawn_get_position(players_positions[0], 0);
+    //   pawn_get_position(players_positions[1], 1);
+      
+    //   distances_to_end[0] = dijkstra(pawn_get_position_as_square_index(0), 0);
+    //   distances_to_end[1] = dijkstra(pawn_get_position_as_square_index(1), 1);
+      
+    //   walls_get_positions(players_walls[0],0);
+    //   walls_get_positions(players_walls[1],1);
+
+    //   board_state_update(players_positions[0],players_positions[1], players_walls[0], players_walls[1], distances_to_end);
+    //   board_state_draw();
+    //   move_next();
+    //   HAL_Delay(500);
+    // }
+
+  pawn_get_position(players_positions[0], 0);
+  pawn_get_position(players_positions[1], 1);
+  
+  distances_to_end[0] = dijkstra(pawn_get_position_as_square_index(0), 0);
+  distances_to_end[1] = dijkstra(pawn_get_position_as_square_index(1), 1);
+  
+  walls_get_positions(players_walls[0],0);
+  walls_get_positions(players_walls[1],1);
+
+  board_state_update(players_positions[0],players_positions[1], players_walls[0], players_walls[1], distances_to_end);
+  board_state_draw();
+
+  while (1)
+  {
+    if(HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_0) != button_pressed_edge_memory && HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_0)){
+      // HAL_GPIO_WritePin(led_orange_GPIO_Port,led_orange_Pin, GPIO_PIN_SET);
+      HAL_GPIO_TogglePin(led_orange_GPIO_Port,led_orange_Pin);
+      
+      if (get_move_counter() > 24 ){
+        get_move_counter();
+      }
+      
+      move_next();
+
 
       pawn_get_position(players_positions[0], 0);
       pawn_get_position(players_positions[1], 1);
@@ -208,21 +198,21 @@ int main(void)
 
       board_state_update(players_positions[0],players_positions[1], players_walls[0], players_walls[1], distances_to_end);
       board_state_draw();
-      move_next();
-      HAL_Delay(500);
-    }
+  
 
-  while (1)
-  {
+
+    }else{
+      // HAL_GPIO_WritePin(led_orange_GPIO_Port,led_orange_Pin, GPIO_PIN_RESET);
+    }
+    button_pressed_edge_memory = HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_0);
+
     /* USER CODE END WHILE */
     MX_USB_HOST_Process();
 
     /* USER CODE BEGIN 3 */
 	
-	HAL_GPIO_TogglePin(led_orange_GPIO_Port,led_orange_Pin);
-	HAL_Delay(1000);
-    // ssd1306_TestAll();
-    // board_draw_refresh();
+    // HAL_GPIO_TogglePin(led_orange_GPIO_Port,led_orange_Pin);
+    HAL_Delay(40);
     
   }
   /* USER CODE END 3 */
@@ -399,7 +389,7 @@ static void MX_SPI2_Init(void)
   hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_SOFT; 
+  hspi2.Init.NSS = SPI_NSS_SOFT;
   hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
@@ -509,11 +499,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
   HAL_GPIO_Init(PDM_OUT_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
+  /*Configure GPIO pin : PA0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BOOT1_Pin */
   GPIO_InitStruct.Pin = BOOT1_Pin;
