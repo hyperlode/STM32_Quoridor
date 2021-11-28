@@ -3,33 +3,14 @@
 #include "ssd1306.h"
 #include "quoridor_config.h"
 #include "quoridor_gameplay.h"
+#include "quoridor_graph.h"
 
 static uint8_t move_counter;
 static Player players[2];
 
-uint8_t board_graph[81][NEIGHBOURS_SIZE];
-
 char moves[MAX_MOVES_COUNT][2];
 
-/*
-board graph nodes indeces to quoridor board squares
-
-  N
-  ^
-W + E
-  S
-
-72 73 74 75 76 77 78 79 80
-63 64 65 66 67 68 69 70 71
-54 55 56 57 58 59 60 61 62 
-45 46 47 48 49 50 51 52 53
-36 37 38 39 40 41 42 43 44 
-27 28 29 30 31 32 33 34 35 
-18 19 20 21 22 23 24 25 26
-9  10 11 12 13 14 15 16 17
-0  1  2  3  4  5  6  7  8 
-
-*/
+// char move_index_to_notation [140][2]= {"N ", "E ", "S ", "W ", "NN", "EE", "SS", "WW", "NE", "NW", "SE", "SW", "1a", "1b", "1c", "1d", "1e", "1f", "1g", "1h", "2a", "2b", "2c", "2d", "2e", "2f", "2g", "2h", "3a", "3b", "3c", "3d", "3e", "3f", "3g", "3h", "4a", "4b", "4c", "4d", "4e", "4f", "4g", "4h", "5a", "5b", "5c", "5d", "5e", "5f", "5g", "5h", "6a", "6b", "6c", "6d", "6e", "6f", "6g", "6h", "7a", "7b", "7c", "7d", "7e", "7f", "7g", "7h", "8a", "8b", "8c", "8d", "8e", "8f", "8g", "8h", "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1", "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2", "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3", "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4", "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5", "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6", "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7", "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"};
 
 void game_init(void)
 {
@@ -59,21 +40,8 @@ void game_init(void)
         }
     }
 
-    // build up the board graph
-    uint8_t index;
-    uint8_t square_index;
+    graph_init();
 
-    for (uint8_t col = 0; col < 9; col++)
-    {
-        for (uint8_t row = 0; row < 9; row++)
-        {
-            square_index = row * 9 + col;
-            init_graph_node_get_neighbours(row, col, board_graph[square_index]);
-            index++;
-        }
-    }
-
-    board_graph;
     move_counter = 0;
 }
 
@@ -82,229 +50,13 @@ uint8_t get_move_counter()
     return move_counter;
 }
 
-void add_wall_to_board_graph(uint8_t row, uint8_t col, uint8_t horizontal_else_vertical)
-{
-    // set_wall_by_row_col();
-    uint8_t base_square;
-    base_square = row_col_to_square_index(row, col);
+// void get_move_index_to_notation(uint8_t index, char* notation){
+//     notation = move_index_to_notation[index];
+// }
 
-    if (horizontal_else_vertical)
-    {
-        disconnect_nodes(base_square, base_square - 9);
-        disconnect_nodes(base_square - 1, base_square - 1 - 9);
-        // disconnect_nodes(base_square, base_square + 9);
-        // disconnect_nodes(base_square - 1, base_square - 1 + 9);
-    }
-    else
-    {
-        disconnect_nodes(base_square, base_square + 1);
-        disconnect_nodes(base_square - 9, base_square + 1 - 9);
-    }
-}
+// void get_notation_to_index(char* notation, uint8_t index){
 
-void disconnect_nodes(uint8_t node_1, uint8_t node_2)
-{
-    delete_edge(node_1, node_2);
-    delete_edge(node_2, node_1);
-}
-
-void delete_edge(uint8_t start_node, uint8_t node_to_be_disconnected)
-{
-
-    #define NOT_FOUND_INDEX 66
-    uint8_t i = 0;
-    uint8_t delete_node_index = NOT_FOUND_INDEX;
-    uint8_t check_node;
-
-    do
-    {
-        check_node = board_graph[start_node][i];
-        if (check_node == node_to_be_disconnected)
-        {
-            delete_node_index = i;
-        }
-        i++;
-    } while (check_node != FAKE_NEIGHBOUR);
-
-    if (delete_node_index == NOT_FOUND_INDEX)
-    {
-        // NOT FOUND
-        raise_error(ERROR_DELETE_EDGE);
-        return;
-    }
-
-    i--; // get last i right
-    i--; // get index of last valid node
-
-    if (i == delete_node_index)
-    {
-        // only one valid node available
-    }
-    else
-    {
-        board_graph[start_node][delete_node_index] = board_graph[start_node][i];
-    }
-    board_graph[start_node][i] = FAKE_NEIGHBOUR;
-}
-
-void init_graph_node_get_neighbours(uint8_t row, uint8_t col, uint8_t *neighbours)
-{
-    uint8_t neighbours_counter = 0;
-
-    // NORTH neighbour
-    if (row < 8)
-    {
-        neighbours[neighbours_counter] = index_from_row_col(row + 1, col);
-        neighbours_counter++;
-    }
-
-    // EAST neighbour
-    if (col < 8)
-    {
-        neighbours[neighbours_counter] = index_from_row_col(row, col + 1);
-        neighbours_counter++;
-    }
-
-    // SOUTH neighbour
-    if (row != 0)
-    {
-        neighbours[neighbours_counter] = index_from_row_col(row - 1, col);
-        neighbours_counter++;
-    }
-
-    // WEST neighbour
-    if (col != 0)
-    {
-        neighbours[neighbours_counter] = index_from_row_col(row, col - 1);
-        neighbours_counter++;
-    }
-
-    while (neighbours_counter < NEIGHBOURS_SIZE)
-    {
-        neighbours[neighbours_counter] = FAKE_NEIGHBOUR;
-        neighbours_counter++;
-    }
-}
-
-void get_winning_distances(uint8_t* distances){
-    distances[0] = get_distance_to_winning_square(0, pawn_get_position_as_square_index(0));
-    distances[1] = get_distance_to_winning_square(1, pawn_get_position_as_square_index(1));
-}
-
-uint8_t get_distance_to_winning_square(uint8_t playing_player, uint8_t start_node)
-{
-    // get distance to nearest winning square
-
-    // for quoridor, we need to calculate a path to the nearest winning node (aka row)
-
-    uint8_t target_nodes_player_0[9] = {72, 73, 74, 75, 76, 77, 78, 79, 80};
-    uint8_t target_nodes_player_1[9] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
-
-    // set the target nodes depending on the active player.
-    uint8_t *target_nodes;
-    if (playing_player == 0)
-    {
-        target_nodes = target_nodes_player_0;
-    }
-    else
-    {
-        target_nodes = target_nodes_player_1;
-    }
-
-    uint8_t visited[81];        // nodes as index
-    uint8_t nodes_to_visit[81]; // contains nodes to be visited
-    uint8_t nodes_to_visit_count = 0;
-    uint8_t distance_to_start_node[81]; // dijkstra scores here nodes as index
-    uint8_t target_reached = 0;
-
-    uint8_t active_node = start_node;
-    for (uint8_t i = 0; i < 81; i++)
-    {
-        visited[i] = NOT_VISITED;
-        nodes_to_visit[i] = NONE_NODE;
-        distance_to_start_node[i] = BYTE_INFINITY;
-    }
-
-    // initialize
-    nodes_to_visit[nodes_to_visit_count] = start_node;
-    nodes_to_visit_count = 1;
-    distance_to_start_node[start_node] = 0; // distance to itself = 0
-
-    //while there are still nodes to visit and end no target nodes reached.
-    while (nodes_to_visit_count > 0 && target_reached == 0)
-    {
-        // as long as nodes_to_visit_count > 0: there are still nodes that need to be visited.
-
-        // search for potential active node (= node with shortest distance)
-        uint8_t active_node;
-        uint8_t active_node_distance = BYTE_INFINITY;
-        uint8_t index_of_active_node_in_nodes_to_visit;
-        for (uint8_t i = 0; i < nodes_to_visit_count; i++)
-        {
-            if (distance_to_start_node[nodes_to_visit[i]] <= active_node_distance)
-            {
-                active_node = nodes_to_visit[i];
-                active_node_distance = distance_to_start_node[nodes_to_visit[i]];
-                index_of_active_node_in_nodes_to_visit = i;
-            }
-        }
-
-        // check all neighbours of active node
-        uint8_t neighbour_counter = 0;
-        uint8_t neighbour_node = board_graph[active_node][neighbour_counter];
-        while (neighbour_node != FAKE_NEIGHBOUR && neighbour_counter < NEIGHBOURS_SIZE)
-        {
-
-            // check if neighbour node is target node. If so, goal reached. report.
-            for (uint8_t i = 0; i < 9; i++)
-            {
-                if (neighbour_node == target_nodes[i])
-                {
-                    // goal reached
-                    return active_node_distance + 1;
-                }
-            }
-
-            // handle neighbour
-            if (visited[neighbour_node] == NOT_VISITED)
-            {
-                // check if distance to neighbour node is shorter than what the neighbour node already has stored. If so, replace by new shorter distance (yippeee)
-                if ((active_node_distance + 1) < distance_to_start_node[neighbour_node])
-                {
-                    distance_to_start_node[neighbour_node] = active_node_distance + 1;
-                }
-
-                // add neighbour to nodes to visit. take care: It might already be in the list. (in that case, do not add...)
-                uint8_t neighbour_node_was_already_added_for_being_visited = 0;
-                for (uint8_t i = 0; i < nodes_to_visit_count; i++)
-                {
-                    if (nodes_to_visit[i] == neighbour_node)
-                    {
-                        neighbour_node_was_already_added_for_being_visited = 1;
-                    }
-                }
-
-                if (!neighbour_node_was_already_added_for_being_visited)
-                {
-                    nodes_to_visit[nodes_to_visit_count] = neighbour_node;
-                    nodes_to_visit_count++;
-                }
-            }
-
-            neighbour_counter++;
-            neighbour_node = board_graph[active_node][neighbour_counter];
-
-            // next neighbour
-        }
-        // delete node from nodes to visit (replace it by the last added node)
-        nodes_to_visit[index_of_active_node_in_nodes_to_visit] = nodes_to_visit[nodes_to_visit_count - 1];
-        nodes_to_visit[nodes_to_visit_count - 1] = FAKE_NEIGHBOUR;
-        nodes_to_visit_count--;
-
-        // add node as DONE (so ti )
-        visited[active_node] = VISITED;
-    }
-}
+// }
 
 uint8_t index_from_row_col(uint8_t row, uint8_t col)
 {
@@ -313,15 +65,14 @@ uint8_t index_from_row_col(uint8_t row, uint8_t col)
 
 void move_next_replay(void)
 {
-        char *move = moves[move_counter];
-        move_by_notation(move);
-    
+    char *move = moves[move_counter];
+    move_by_notation(move);
 };
 
-void move_by_notation(char* move_as_notation){
-     uint8_t player = move_counter % 2;
+void move_by_notation(char *move_as_notation)
+{
+    uint8_t player = move_counter % 2;
 
-    
     if (move_as_notation[0] == 'X')
     {
         // end of game
@@ -437,7 +188,7 @@ void wall_set_by_notation(uint8_t player, char *wall_position)
         }
     }
     set_wall_by_row_col(player, row, col, horizontal_else_vertical);
-    add_wall_to_board_graph(row, col, horizontal_else_vertical);
+    graph_add_wall(row, col, horizontal_else_vertical);
     players[player].walls_placed++;
 };
 
@@ -516,15 +267,16 @@ void pawn_set_position(uint8_t player, int8_t delta_x, int8_t delta_y)
     players[player].pawn.col += delta_x;
 }
 
-uint8_t row_col_to_square_index(uint8_t row, uint8_t col)
-{
-    return row * 9 + col;
+
+void get_winning_distances(uint8_t* distances){
+    distances[0] = graph_get_distance_to_winning_square(0, pawn_get_position_as_node_index(0));
+    distances[1] = graph_get_distance_to_winning_square(1, pawn_get_position_as_node_index(1));
 }
 
-uint8_t pawn_get_position_as_square_index(uint8_t player)
+uint8_t pawn_get_position_as_node_index(uint8_t player)
 {
     // player = 0 or 1
-    return row_col_to_square_index(
+    return graph_node_index_from_row_col(
         players[player].pawn.row,
         players[player].pawn.col);
 }
