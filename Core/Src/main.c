@@ -122,8 +122,13 @@ int main(void)
   uint8_t button_pressed_edge_memory;
 
   char moves_lode_notation [MOVES_STRING_LENGTH] = "N,S,N,S,N,S,2d,4d,2f,E,2b,a1,E,E,N,5f,E,E,2h,g4,c5,S,c3,N,c7,8b,3h,W,W,W,W,N,N,6d,f6,N,E,W,N,7e,W,N,W,8d,f8,W,N,W,E,W,E,W,N";
-  replay_game_init(moves_lode_notation);
-
+  #define QUORIDOR_AUTOPLAY
+  #ifdef QUORIDOR_AUTOPLAY
+   autoplay_game_init();
+  #else
+    replay_game_init(moves_lode_notation);
+  #endif
+  
   while (1)
   {
     if(HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_0) != button_pressed_edge_memory && HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_0)){
@@ -133,7 +138,12 @@ int main(void)
 
         get_move_counter();
       }
-      replay_game_next_move();
+        #ifdef QUORIDOR_AUTOPLAY
+            autoplay_game_next_move();
+        #else
+            replay_game_next_move();
+        #endif
+  
       
 
     }else{
@@ -150,6 +160,12 @@ int main(void)
     HAL_Delay(40);
     
   }
+
+
+
+
+
+
   /* USER CODE END 3 */
 }
 

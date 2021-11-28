@@ -76,6 +76,7 @@ void game_init(void)
     board_graph;
     move_counter = 0;
 }
+
 uint8_t get_move_counter()
 {
     return move_counter;
@@ -110,7 +111,7 @@ void disconnect_nodes(uint8_t node_1, uint8_t node_2)
 void delete_edge(uint8_t start_node, uint8_t node_to_be_disconnected)
 {
 
-#define NOT_FOUND_INDEX 66
+    #define NOT_FOUND_INDEX 66
     uint8_t i = 0;
     uint8_t delete_node_index = NOT_FOUND_INDEX;
     uint8_t check_node;
@@ -128,6 +129,7 @@ void delete_edge(uint8_t start_node, uint8_t node_to_be_disconnected)
     if (delete_node_index == NOT_FOUND_INDEX)
     {
         // NOT FOUND
+        raise_error(ERROR_DELETE_EDGE);
         return;
     }
 
@@ -184,8 +186,14 @@ void init_graph_node_get_neighbours(uint8_t row, uint8_t col, uint8_t *neighbour
     }
 }
 
-uint8_t dijkstra(uint8_t start_node, uint8_t playing_player)
+void get_winning_distances(uint8_t* distances){
+    distances[0] = get_distance_to_winning_square(0, pawn_get_position_as_square_index(0));
+    distances[1] = get_distance_to_winning_square(1, pawn_get_position_as_square_index(1));
+}
+
+uint8_t get_distance_to_winning_square(uint8_t playing_player, uint8_t start_node)
 {
+    // get distance to nearest winning square
 
     // for quoridor, we need to calculate a path to the nearest winning node (aka row)
 
@@ -303,26 +311,32 @@ uint8_t index_from_row_col(uint8_t row, uint8_t col)
     return row * 9 + col;
 }
 
-void move_next(void)
+void move_next_replay(void)
 {
-    uint8_t player = move_counter % 2;
+        char *move = moves[move_counter];
+        move_by_notation(move);
+    
+};
 
-    uint8_t *move = moves[move_counter];
-    if (move[0] == 'X')
+void move_by_notation(char* move_as_notation){
+     uint8_t player = move_counter % 2;
+
+    
+    if (move_as_notation[0] == 'X')
     {
         // end of game
         return;
     }
-    else if (move[0] == 'N' || move[0] == 'E' || move[0] == 'S' || move[0] == 'W')
+    else if (move_as_notation[0] == 'N' || move_as_notation[0] == 'E' || move_as_notation[0] == 'S' || move_as_notation[0] == 'W')
     {
-        pawn_move_by_notation(player, move);
+        pawn_move_by_notation(player, move_as_notation);
     }
     else
     {
-        wall_set_by_notation(player, move);
+        wall_set_by_notation(player, move_as_notation);
     }
     move_counter++;
-};
+}
 
 void moves_string_to_moves(char *moves_as_string)
 {
@@ -344,12 +358,12 @@ void moves_string_to_moves(char *moves_as_string)
             else if (char_counter_in_move == 0)
             {
                 // ERROR EMPTY MOVE
-                notation_error();
+                raise_error(ERROR_NOTATION);
             }
             else if (char_counter_in_move > 2)
             {
                 // ERROR TOO MANY CHARS in move
-                notation_error();
+                raise_error(ERROR_NOTATION);
             }
             char_counter_in_move = 0;
             counter++;
@@ -374,21 +388,7 @@ void moves_string_to_moves(char *moves_as_string)
     }
 }
 
-void notation_error()
-{
-    while (1)
-    {
-    };
-}
-
-void game_error()
-{
-    while (1)
-    {
-    };
-}
-
-void assert_error()
+void raise_error(uint8_t error_code)
 {
     while (1)
     {
@@ -433,7 +433,7 @@ void wall_set_by_notation(uint8_t player, char *wall_position)
         else
         {
             // INVALID ERROR
-            notation_error();
+            raise_error(ERROR_NOTATION);
         }
     }
     set_wall_by_row_col(player, row, col, horizontal_else_vertical);
@@ -496,13 +496,13 @@ void pawn_move_by_notation(uint8_t player, char *direction)
         {
             // second char in single char move
             // illegal notation. (i.e. uncovered.)
-            notation_error();
+            raise_error(ERROR_NOTATION);
             break;
         }
         default:
         {
             // for single char moves, the second char will be something else...
-            notation_error();
+            raise_error(ERROR_NOTATION);
             break;
         }
         }

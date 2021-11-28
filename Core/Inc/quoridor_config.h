@@ -7,6 +7,10 @@ _BEGIN_STD_C
 #define MAX_MOVES_COUNT 100
 #define MOVES_STRING_LENGTH 100*3  // each move is max 2 chars and a divider
 
+#define ERROR_NOTATION 0 
+#define ERROR_DELETE_EDGE 1
+
+
 struct Pawn{
     uint8_t row;
     uint8_t col;
