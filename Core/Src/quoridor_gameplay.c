@@ -4,13 +4,13 @@
 #include "quoridor_config.h"
 #include "quoridor_gameplay.h"
 #include "quoridor_graph.h"
+#include "quoridor_notation.h"
 
 static uint8_t move_counter;
 static Player players[2];
 
-char moves[MAX_MOVES_COUNT][2];
-
-// char move_index_to_notation [140][2]= {"N ", "E ", "S ", "W ", "NN", "EE", "SS", "WW", "NE", "NW", "SE", "SW", "1a", "1b", "1c", "1d", "1e", "1f", "1g", "1h", "2a", "2b", "2c", "2d", "2e", "2f", "2g", "2h", "3a", "3b", "3c", "3d", "3e", "3f", "3g", "3h", "4a", "4b", "4c", "4d", "4e", "4f", "4g", "4h", "5a", "5b", "5c", "5d", "5e", "5f", "5g", "5h", "6a", "6b", "6c", "6d", "6e", "6f", "6g", "6h", "7a", "7b", "7c", "7d", "7e", "7f", "7g", "7h", "8a", "8b", "8c", "8d", "8e", "8f", "8g", "8h", "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1", "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2", "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3", "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4", "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5", "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6", "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7", "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8"};
+//char moves[MAX_MOVES_COUNT][2];
+uint8_t moves_indeces[MAX_MOVES_COUNT];
 
 void game_init(void)
 {
@@ -21,14 +21,6 @@ void game_init(void)
     players[1].pawn.row += 8;
     players[1].pawn.col += 4;
     players[1].walls_placed = 0;
-
-    for (uint8_t move = 0; move < MAX_MOVES_COUNT; move++)
-    {
-        for (uint8_t i = 0; i < 2; i++)
-        {
-            moves[move][i] = 0;
-        }
-    }
 
     for (uint8_t player = 0; player < 2; player++)
     {
@@ -50,145 +42,52 @@ uint8_t get_move_counter()
     return move_counter;
 }
 
-// void get_move_index_to_notation(uint8_t index, char* notation){
-//     notation = move_index_to_notation[index];
-// }
+void load_game_by_notation_one_string(moves_as_notation_one_string){
+     moves_string_to_moves_indeces(moves_as_notation_one_string, moves_indeces);
 
-// void get_notation_to_index(char* notation, uint8_t index){
-
-// }
-
-uint8_t index_from_row_col(uint8_t row, uint8_t col)
-{
-    return row * 9 + col;
 }
+// void replay_game_init(char *moves_as_notation_one_string)
+// {
+//     moves_string_to_moves_indeces(moves_as_notation_one_string, moves_indeces);
+// }
 
-void move_next_replay(void)
+void next_move_loaded_game(void)
 {
-    char *move = moves[move_counter];
-    move_by_notation(move);
+    // char *move = moves[move_counter];
+    // move_by_notation(move);
+
+    uint8_t move_index = moves_indeces[move_counter];
+    make_move(move_index);
 };
 
-void move_by_notation(char *move_as_notation)
+void make_move(uint8_t move_index)
 {
     uint8_t player = move_counter % 2;
 
-    if (move_as_notation[0] == 'X')
+    if (move_index == MOVE_INDEX_END_OF_GAME)
     {
         // end of game
         return;
     }
-    else if (move_as_notation[0] == 'N' || move_as_notation[0] == 'E' || move_as_notation[0] == 'S' || move_as_notation[0] == 'W')
+    else if (move_index < MOVE_INDEX_FIRST_WALL)
     {
-        pawn_move_by_notation(player, move_as_notation);
+        // pawn_move_by_notation(player, move_as_notation);
+        make_move_pawn(player, move_index);
     }
     else
     {
-        wall_set_by_notation(player, move_as_notation);
+        make_move_wall(player, move_index);
+        // wall_set_by_notation(player, move_as_notation);
     }
     move_counter++;
 }
 
-void moves_string_to_moves(char *moves_as_string)
+void make_move_wall(uint8_t player, uint8_t move_index)
 {
-    // string of moves (in Lode notation) to separate moves
-    uint16_t counter = 0;
-
-    uint8_t char_counter_in_move = 0;
-    for (uint8_t i = 0; i < MOVES_STRING_LENGTH; i++)
-    {
-        char c = moves_as_string[i];
-
-        if (c == ',')
-        {
-            // moves have a maximum of two characters. If only one charcter, fill the second character with a dummy. If foresee problems other wise. e.g. previous game was NW, now overwrite with N , but the W is still there...
-            if (char_counter_in_move == 1)
-            {
-                moves[counter][char_counter_in_move] = ' ';
-            }
-            else if (char_counter_in_move == 0)
-            {
-                // ERROR EMPTY MOVE
-                raise_error(ERROR_NOTATION);
-            }
-            else if (char_counter_in_move > 2)
-            {
-                // ERROR TOO MANY CHARS in move
-                raise_error(ERROR_NOTATION);
-            }
-            char_counter_in_move = 0;
-            counter++;
-        }
-        else if (c == '\0')
-        {
-            // if last move is single char move (e.g. N), fill up second position.
-            if (char_counter_in_move == 1)
-            {
-                moves[counter][char_counter_in_move] = ' ';
-            }
-            moves[counter + 1][0] = 'X';
-            moves[counter + 1][1] = ' ';
-            return;
-        }
-
-        else
-        {
-            moves[counter][char_counter_in_move] = c;
-            char_counter_in_move++;
-        }
-    }
-}
-
-void raise_error(uint8_t error_code)
-{
-    while (1)
-    {
-    };
-}
-
-void wall_set_by_notation(uint8_t player, char *wall_position)
-{
-    // direction always two chars.
-
-    uint8_t first_char = 1;
-    uint8_t col;
-    uint8_t row;
-    uint8_t horizontal_else_vertical;
-
-    for (uint8_t i = 0; i < 2; i++)
-    {
-        char c = wall_position[i];
-        if (c >= 97 && c <= 104)
-        {
-            // a->h
-            // N-S component
-            if (first_char)
-            {
-                horizontal_else_vertical = 0;
-            }
-            col = c - 96;
-            first_char = 0;
-        }
-        else if (c >= 49 && c <= 56)
-        {
-            // 1->9
-            // E-W component
-
-            if (first_char)
-            {
-                horizontal_else_vertical = 1;
-            }
-            row = c - 48;
-            first_char = 0;
-        }
-        else
-        {
-            // INVALID ERROR
-            raise_error(ERROR_NOTATION);
-        }
-    }
-    set_wall_by_row_col(player, row, col, horizontal_else_vertical);
-    graph_add_wall(row, col, horizontal_else_vertical);
+    uint8_t wall_row_col_dir[3];
+    move_index_to_row_col_dir(move_index, wall_row_col_dir);
+    set_wall_by_row_col(player, wall_row_col_dir[0], wall_row_col_dir[1], wall_row_col_dir[2]);
+    graph_add_wall(wall_row_col_dir[0], wall_row_col_dir[1], wall_row_col_dir[2]);
     players[player].walls_placed++;
 };
 
@@ -209,66 +108,100 @@ void walls_get_all_positions(uint8_t *positions, uint8_t player)
     }
 }
 
-void pawn_move_by_notation(uint8_t player, char *direction)
+void make_move_pawn(uint8_t player, uint8_t move_index)
 {
-    // direction always two chars. second char should be ' ' if single char move   // (which is a bit risky. For single character moves, the second character is the divider character between moves....)
-
-    // double character moves (NN NE ,...) are basically treated as two separated pawn moves.
-    for (uint8_t i = 0; i < 2; i++)
+    uint8_t delta_row;
+    uint8_t delta_col;
+    switch (move_index)
     {
-        switch (direction[i])
-        {
-        case 'N':
-        {
-            pawn_set_position(player, 0, 1);
-            break;
-        }
-        case 'S':
-        {
-            pawn_set_position(player, 0, -1);
-            break;
-        }
-        case 'E':
-        {
-            pawn_set_position(player, 1, 0);
-            break;
-        }
-        case 'W':
-        {
-            pawn_set_position(player, -1, 0);
-            break;
-        }
-        case ' ':
-        {
-            // second char in single char move
-            break;
-        }
-        case 0:
-        {
-            // second char in single char move
-            // illegal notation. (i.e. uncovered.)
-            raise_error(ERROR_NOTATION);
-            break;
-        }
-        default:
-        {
-            // for single char moves, the second char will be something else...
-            raise_error(ERROR_NOTATION);
-            break;
-        }
-        }
+    case 0:
+    {
+        delta_row = 1;
+        delta_col = 0;
+        break;
     }
+    case 1:
+    {
+        delta_row = 0;
+        delta_col = 1;
+        break;
+    }
+    case 2:
+    {
+        delta_row = -1;
+        delta_col = 0;
+        break;
+    }
+    case 3:
+    {
+        delta_row = 0;
+        delta_col = -1;
+        break;
+    }
+    // JUMPS
+    case 4:
+    {
+        delta_row = 2;
+        delta_col = 0;
+        break;
+    }
+    case 5:
+    {
+        delta_row = 0;
+        delta_col = 2;
+        break;
+    }
+    case 6:
+    {
+        delta_row = -2;
+        delta_col = 0;
+        break;
+    }
+    case 7:
+    {
+        delta_row = 0;
+        delta_col = -2;
+        break;
+    }
+    // DIAGONALS
+    case 8:
+    {
+        delta_row = 1;
+        delta_col = 1;
+        break;
+    }
+    case 9:
+    {
+        delta_row = 1;
+        delta_col = -1;
+        break;
+    }
+    case 10:
+    {
+        delta_row = -1;
+        delta_col = 1;
+        break;
+    }
+    case 11:
+    {
+        delta_row = -1;
+        delta_col = -1;
+        break;
+    }
+    default:
+    {
+        // for single char moves, the second char will be something else...
+        raise_error(ERROR_NOTATION);
+        break;
+    }
+    }
+
+    players[player].pawn.row += delta_row;
+    players[player].pawn.col += delta_col;
 };
 
-void pawn_set_position(uint8_t player, int8_t delta_x, int8_t delta_y)
+void get_winning_distances(uint8_t *distances)
 {
-    // DO NOT CHECK validity here. In the text notation, double moves (NN , NE,... ) will come here twice. e.g. IF NN, the first north would be invalid as it hits the other player.
-    players[player].pawn.row += delta_y;
-    players[player].pawn.col += delta_x;
-}
-
-
-void get_winning_distances(uint8_t* distances){
     distances[0] = graph_get_distance_to_winning_square(0, pawn_get_position_as_node_index(0));
     distances[1] = graph_get_distance_to_winning_square(1, pawn_get_position_as_node_index(1));
 }
@@ -287,4 +220,11 @@ void pawn_get_position_as_row_col(uint8_t *position, uint8_t player)
     position[0] = players[player].pawn.row;
     position[1] = players[player].pawn.col;
     return position;
+}
+
+void raise_error(uint8_t error_code)
+{
+    while (1)
+    {
+    };
 }

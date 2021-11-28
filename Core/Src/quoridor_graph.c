@@ -109,28 +109,28 @@ void graph_node_get_neighbours_at_init(uint8_t row, uint8_t col, uint8_t *neighb
     // NORTH neighbour
     if (row < 8)
     {
-        neighbours[neighbours_counter] = index_from_row_col(row + 1, col);
+        neighbours[neighbours_counter] = graph_node_index_from_row_col(row + 1, col);
         neighbours_counter++;
     }
 
     // EAST neighbour
     if (col < 8)
     {
-        neighbours[neighbours_counter] = index_from_row_col(row, col + 1);
+        neighbours[neighbours_counter] = graph_node_index_from_row_col(row, col + 1);
         neighbours_counter++;
     }
 
     // SOUTH neighbour
     if (row != 0)
     {
-        neighbours[neighbours_counter] = index_from_row_col(row - 1, col);
+        neighbours[neighbours_counter] = graph_node_index_from_row_col(row - 1, col);
         neighbours_counter++;
     }
 
     // WEST neighbour
     if (col != 0)
     {
-        neighbours[neighbours_counter] = index_from_row_col(row, col - 1);
+        neighbours[neighbours_counter] = graph_node_index_from_row_col(row, col - 1);
         neighbours_counter++;
     }
 
@@ -259,4 +259,12 @@ uint8_t graph_get_distance_to_winning_square(uint8_t target_south_else_north, ui
         // add node as DONE (so ti )
         visited[active_node] = VISITED;
     }
+}
+
+
+void raise_error(uint8_t error_code)
+{
+    while (1)
+    {
+    };
 }

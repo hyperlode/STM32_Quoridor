@@ -17,6 +17,7 @@ void graph_add_wall(uint8_t row, uint8_t col, uint8_t horizontal_else_vertical);
 static void disconnect_nodes(uint8_t node_1, uint8_t node_2);
 static void delete_edge(uint8_t start_node, uint8_t node_to_be_disconnected);
 static void graph_node_get_neighbours_at_init(uint8_t row, uint8_t col, uint8_t *neighbours);
+static void raise_error(uint8_t error_code);
 
 uint8_t graph_get_distance_to_winning_square(uint8_t target_south_else_north, uint8_t start_node);
 uint8_t graph_node_index_from_row_col(uint8_t row, uint8_t col);

@@ -27,13 +27,13 @@ void replay_game_init(moves_lode_notation)
 {
     // provide string of moves "N,S,4e"
     game_init();
-    moves_string_to_moves(moves_lode_notation);
+    load_game_by_notation_one_string(moves_lode_notation);
     display_game_state();
 }
 
 void replay_game_next_move()
 {
-    move_next_replay();
+    next_move_loaded_game();
     display_game_state();
 }
 
