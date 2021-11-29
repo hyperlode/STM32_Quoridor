@@ -9,8 +9,10 @@
 static uint8_t move_counter;
 static Player players[2];
 
-//char moves[MAX_MOVES_COUNT][2];
 uint8_t moves_indeces[MAX_MOVES_COUNT];
+uint8_t moves_delta[140]; // store all deltas of moves. Combine with the "move_index_possible" to only check the relevant indeces.
+
+uint8_t move_index_possible[140]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
 
 void game_init(void)
 {
@@ -36,33 +38,54 @@ void game_init(void)
 
     move_counter = 0;
 }
+void analyse_possible_moves(){
+    analyse_possible_moves_pawn();
+    analyse_possible_moves_walls();
+}
+
+void analyse_possible_moves_walls(){
+    for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++){
+
+        //uint8_t row_col_dir [3];
+        // move_index_to_row_col_dir(move_index, row_col_dir);
+
+        graph_wall_add(i);
+        uint8_t delta;
+        delta = graph_delta_of_distances(
+            pawn_get_position_as_node_index(0),
+            pawn_get_position_as_node_index(1));
+
+        moves_delta[i] = delta;
+        move_index_possible [i] = (delta != PAWN_TARGET_NOT_REACHABLE);
+        graph_wall_remove(i);
+    }
+}
+void analyse_possible_moves_pawn(){
+    for (uint8_t i = 0; i < MOVE_INDEX_FIRST_WALL; i++)
+    {
+        move_index_possible[i] = check_move_possible_pawn(i, get_playing_player());
+    }
+}
 
 uint8_t get_move_counter()
 {
     return move_counter;
 }
 
-void load_game_by_notation_one_string(moves_as_notation_one_string){
-     moves_string_to_moves_indeces(moves_as_notation_one_string, moves_indeces);
-
+void load_game_by_notation_one_string(moves_as_notation_one_string)
+{
+    moves_string_to_moves_indeces(moves_as_notation_one_string, moves_indeces);
 }
-// void replay_game_init(char *moves_as_notation_one_string)
-// {
-//     moves_string_to_moves_indeces(moves_as_notation_one_string, moves_indeces);
-// }
 
 void next_move_loaded_game(void)
 {
-    // char *move = moves[move_counter];
-    // move_by_notation(move);
-
     uint8_t move_index = moves_indeces[move_counter];
     make_move(move_index);
 };
 
 void make_move(uint8_t move_index)
 {
-    uint8_t player = move_counter % 2;
+    
 
     if (move_index == MOVE_INDEX_END_OF_GAME)
     {
@@ -72,14 +95,217 @@ void make_move(uint8_t move_index)
     else if (move_index < MOVE_INDEX_FIRST_WALL)
     {
         // pawn_move_by_notation(player, move_as_notation);
-        make_move_pawn(player, move_index);
+        make_move_pawn(get_playing_player(), move_index);
     }
     else
     {
-        make_move_wall(player, move_index);
+        make_move_wall(get_playing_player(), move_index);
         // wall_set_by_notation(player, move_as_notation);
     }
     move_counter++;
+
+
+
+    TODO 
+    update graph with all impossible edges after wall placement.
+    check if wall can be placed: inline overlap! 
+    // prepare for next move
+    analyse_possible_moves_pawn();
+
+    return;
+}
+
+uint8_t get_playing_player(){
+    return move_counter % 2;
+}
+uint8_t get_opponent(uint8_t player)
+{
+    return !player;
+}
+
+uint8_t check_move_possible_pawn(uint8_t move_index, uint8_t player)
+{
+
+    // Only pawn moves allowed
+
+    if (move_index < 4)
+    {
+        check_move_possible_pawn_orthogonal(move_index, player);
+    }
+    else if (move_index < 8)
+    {
+        check_move_possible_pawn_orthogonal_jump(move_index, player);
+    }
+    else if (move_index < 12)
+    {
+        check_move_possible_pawn_diagonal(move_index, player);
+    }
+    else
+    {
+        raise_error(ERROR_NOTATION_NOT_A_PAWN_MOVE);
+    }
+}
+
+uint8_t check_move_possible_pawn_orthogonal(uint8_t move_index, uint8_t player)
+{
+
+    // Only pawn moves allowed
+    // if (move_index >= 4)
+    // {
+    //     raise_error(ERROR_NOTATION_NOT_AN_ORTHO_PAWN_MOVE);
+    // }
+
+    uint8_t player_node = pawn_get_position_as_node_index(player);
+    uint8_t neighbour_node;
+    uint8_t opponent_node;
+
+    // get direct neighbour from move_index
+    neighbour_node = graph_get_orhtogonal_neighbour_node_if_not_blocked(player_node, move_index);
+
+    // if a wall is detected, return right away
+    if (neighbour_node == FAKE_NEIGHBOUR)
+    {
+        return 0;
+    }
+
+    // check if the other pawn is on adjecent square
+    opponent_node = pawn_get_position_as_node_index(get_opponent(player));
+
+    // no opponent allowed on neighbouring square
+    if (neighbour_node == opponent_node)
+    {
+        return 0;
+    }
+    return 1;
+}
+
+uint8_t check_move_possible_pawn_orthogonal_jump(uint8_t move_index, uint8_t player)
+{
+
+    // Only pawn moves allowed
+    // if (move_index >= 4)
+    // {
+    //     raise_error(ERROR_NOTATION_NOT_AN_ORTHO_PAWN_MOVE_JUMP);
+    // }
+
+    uint8_t player_node = pawn_get_position_as_node_index(player);
+    uint8_t neighbour_node;
+    uint8_t opponent_node;
+    uint8_t neighbour_neighbour_node;
+    uint8_t direction;
+
+    // get direct neighbour from move_index
+    direction = move_index - 4; // normal case
+    neighbour_node = graph_get_orhtogonal_neighbour_node_if_not_blocked(player_node, direction);
+
+    // check if other pawn is on adjecent square
+    opponent_node = pawn_get_position_as_node_index(get_opponent(player));
+
+    // we need a neighbour there
+    if (neighbour_node != opponent_node)
+    {
+        return 0;
+    }
+
+    // get node behind opponent
+    neighbour_neighbour_node = graph_get_orhtogonal_neighbour_node_if_not_blocked(opponent_node, direction);
+
+    if (neighbour_neighbour_node == FAKE_NEIGHBOUR)
+    {
+        return 0;
+    }
+
+    return 1;
+}
+uint8_t check_move_possible_pawn_diagonal(uint8_t move_index, uint8_t player)
+{
+    // diagonals can be reached on two sides. ugh. so if one direct is not working another might.
+    uint8_t player_node = pawn_get_position_as_node_index(player);
+
+    uint8_t direction_0;
+    uint8_t direction_1;
+
+    switch (move_index)
+    {
+    case (8):
+    {
+        direction_0 = 0;
+        direction_1 = 1;
+        break;
+    }
+    case (9):
+    {
+        direction_0 = 0;
+        direction_1 = 3;
+        break;
+    }
+    case (10):
+    {
+        direction_0 = 2;
+        direction_1 = 1;
+        break;
+    }
+    case (11):
+    {
+        direction_0 = 2;
+        direction_1 = 3;
+        break;
+    }
+    default:
+    {
+        raise_error(ERROR_NOTATION_NOT_A_PAWN_MOVE);
+        break;
+    }
+    }
+
+    if (check_move_possible_pawn_L_jump(player, player_node, direction_0, direction_1))
+    {
+        return 1;
+    }
+
+    return check_move_possible_pawn_L_jump(player, player_node, direction_1, direction_0);
+}
+
+uint8_t check_move_possible_pawn_L_jump(player, start_node, direction_1, direction_2)
+{
+    // a diagonal jump is successful if it succeeds in one of the two possible l jumps. e.g. SE --> first south, then east, OR first east, then south.
+
+    // direction 1 and direction 2 are ortho directions 0,1,2,3 fro N,E,S,W
+
+    uint8_t neighbour_node;
+    uint8_t opponent_node;
+    uint8_t neighbour_neighbour_node;
+    uint8_t direction;
+
+    // get direct neighbour from move_index
+    neighbour_node = graph_get_orhtogonal_neighbour_node_if_not_blocked(start_node, direction_1);
+
+    // check if other pawn is on adjecent square
+    opponent_node = pawn_get_position_as_node_index(get_opponent(player));
+
+    // we need a neighbour there
+    if (neighbour_node != opponent_node)
+    {
+        return 0;
+    }
+
+    // get node behind opponent
+    neighbour_neighbour_node = graph_get_orhtogonal_neighbour_node_if_not_blocked(opponent_node, direction_1);
+
+    // ortho jump MUST fail
+    // the node needs to be blocked for an ortho jump to be feasable
+    if (neighbour_neighbour_node != FAKE_NEIGHBOUR)
+    {
+        return 0;
+    }
+
+    // no wall are allowed to block
+    neighbour_neighbour_node = graph_get_orhtogonal_neighbour_node_if_not_blocked(opponent_node, direction_2);
+    if (neighbour_neighbour_node == FAKE_NEIGHBOUR)
+    {
+        return 0;
+    }
+    return 1;
 }
 
 void make_move_wall(uint8_t player, uint8_t move_index)
@@ -87,9 +313,36 @@ void make_move_wall(uint8_t player, uint8_t move_index)
     uint8_t wall_row_col_dir[3];
     move_index_to_row_col_dir(move_index, wall_row_col_dir);
     set_wall_by_row_col(player, wall_row_col_dir[0], wall_row_col_dir[1], wall_row_col_dir[2]);
-    graph_add_wall(wall_row_col_dir[0], wall_row_col_dir[1], wall_row_col_dir[2]);
+    //graph_wall_add(wall_row_col_dir[0], wall_row_col_dir[1], wall_row_col_dir[2]);
+    graph_wall_add(move_index);
     players[player].walls_placed++;
 };
+
+void move_index_to_row_col_dir(uint8_t move_index, uint8_t *row_col_dir)
+{
+    if (move_index < MOVE_INDEX_FIRST_WALL)
+    {
+        raise_error(ERROR_NOT_A_WALL);
+        return;
+    }
+
+    uint8_t offset;
+    if (move_index < MOVE_INDEX_FIRST_VERTICAL_WALL)
+    { // horizontal
+        offset = 12;
+        row_col_dir[2] = 1;
+    }
+    else
+    {
+        offset = 76;
+        row_col_dir[2] = 0;
+    }
+
+    move_index -= offset;
+
+    row_col_dir[0] = (move_index / 8) + 1;
+    row_col_dir[1] = (move_index % 8) + 1;
+}
 
 void set_wall_by_row_col(uint8_t player, uint8_t row, uint8_t col, uint8_t horizontal_else_vertical)
 {
@@ -109,6 +362,15 @@ void walls_get_all_positions(uint8_t *positions, uint8_t player)
 }
 
 void make_move_pawn(uint8_t player, uint8_t move_index)
+{
+    uint8_t deltas_row_col[2];
+    pawn_move_index_to_row_col_deltas(move_index, deltas_row_col);
+
+    players[player].pawn.row += deltas_row_col[0];
+    players[player].pawn.col += deltas_row_col[1];
+};
+
+void pawn_move_index_to_row_col_deltas(uint8_t move_index, int8_t *deltas_row_col)
 {
     uint8_t delta_row;
     uint8_t delta_col;
@@ -195,10 +457,9 @@ void make_move_pawn(uint8_t player, uint8_t move_index)
         break;
     }
     }
-
-    players[player].pawn.row += delta_row;
-    players[player].pawn.col += delta_col;
-};
+    deltas_row_col[0] = delta_row;
+    deltas_row_col[1] = delta_col;
+}
 
 void get_winning_distances(uint8_t *distances)
 {
@@ -222,9 +483,4 @@ void pawn_get_position_as_row_col(uint8_t *position, uint8_t player)
     return position;
 }
 
-void raise_error(uint8_t error_code)
-{
-    while (1)
-    {
-    };
-}
+

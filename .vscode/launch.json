@@ -12,7 +12,24 @@
             "type": "cortex-debug",
             "servertype": "openocd",
             "device": "STMF103CB",
-            "configFiles":["interface/stlink.cfg","target/stm32f4x.cfg"]
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32f4x.cfg"
+            ]
+        },
+        {
+            "showDevDebugOutput": true,
+            "cwd": "${workspaceRoot}",
+            "executable": "./build/STM32F407_discoveryboard_ToolchainTest.elf",
+            "name": "Debug STM32",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "openocd",
+            "preLaunchTask": "Build STM",
+            "device": "stlink",
+            "configFiles": [
+                "openocd.cfg"
+            ]
         }
     ]
 }

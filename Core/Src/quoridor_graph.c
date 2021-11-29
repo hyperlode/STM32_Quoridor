@@ -39,28 +39,120 @@ void graph_init(){
     }
 }
 
-void graph_add_wall(uint8_t row, uint8_t col, uint8_t horizontal_else_vertical)
-{
-    // set_wall_by_row_col();
-    uint8_t base_square;
-    base_square = graph_node_index_from_row_col(row, col);
+void move_index_to_node_indeces(uint8_t move_index, uint8_t* node_indeces){
+    if (move_index < MOVE_INDEX_FIRST_WALL){
+        raise_error(ERROR_NOT_A_WALL);
+    }
+    uint8_t offset;
+    uint8_t row;
+    uint8_t col;
+    uint8_t horizontal_else_vertical;
 
+    if (move_index < MOVE_INDEX_FIRST_VERTICAL_WALL){
+        offset = MOVE_INDEX_FIRST_HORIZONTAL_WALL;
+        horizontal_else_vertical = 1;
+    }else{
+        offset = MOVE_INDEX_FIRST_VERTICAL_WALL;
+        horizontal_else_vertical = 0;
+    }
+
+    move_index -=offset;
+    row = (move_index / 8 ) +1;
+    col = (move_index % 8 ) +1;
+
+    uint8_t base_node_index = graph_node_index_from_row_col(row,col) ;
+    node_indeces[0] =base_node_index;
     if (horizontal_else_vertical)
     {
-        disconnect_nodes(base_square, base_square - 9);
-        disconnect_nodes(base_square - 1, base_square - 1 - 9);
+        node_indeces[1] = base_node_index - 9;
+        node_indeces[2] = base_node_index - 1;
+        node_indeces[3] = base_node_index - 9 - 1;
     }
     else
     {
-        disconnect_nodes(base_square, base_square + 1);
-        disconnect_nodes(base_square - 9, base_square + 1 - 9);
+        node_indeces[1] = base_node_index + 1;
+        node_indeces[2] = base_node_index - 9;
+        node_indeces[3] = base_node_index + 1 - 9;
     }
+}
+
+void graph_wall_add(uint8_t move_index){
+    uint8_t node_indeces[4];
+
+    move_index_to_node_indeces(move_index, node_indeces);
+    disconnect_nodes(node_indeces[0],node_indeces[1]);
+    disconnect_nodes(node_indeces[2],node_indeces[3]);
+}
+
+void graph_wall_remove(uint8_t move_index){
+    uint8_t node_indeces[4];
+
+    move_index_to_node_indeces(move_index, node_indeces);
+    connect_nodes(node_indeces[0],node_indeces[1]);
+    connect_nodes(node_indeces[2],node_indeces[3]);
+}
+
+
+// void graph_add_wall(uint8_t row, uint8_t col, uint8_t horizontal_else_vertical)
+// {
+//     // set_wall_by_row_col();
+//     uint8_t base_square;
+//     base_square = graph_node_index_from_row_col(row, col);
+
+//     if (horizontal_else_vertical)
+//     {
+//         disconnect_nodes(base_square, base_square - 9);
+//         disconnect_nodes(base_square - 1, base_square - 1 - 9);
+//     }
+//     else
+//     {
+//         disconnect_nodes(base_square, base_square + 1);
+//         disconnect_nodes(base_square - 9, base_square + 1 - 9);
+//     }
+// }
+
+uint8_t get_edge_exists(uint8_t node_start, uint8_t node_end){
+
+    uint8_t i=0;
+    uint8_t node_neighbour;
+    do{
+        node_neighbour = board_graph[node_start][i];
+        i++;
+
+    }while(node_neighbour != node_end && node_neighbour != FAKE_NEIGHBOUR);
+
+    return node_neighbour == node_end;    
 }
 
 void disconnect_nodes(uint8_t node_1, uint8_t node_2)
 {
     delete_edge(node_1, node_2);
     delete_edge(node_2, node_1);
+}
+
+void connect_nodes(uint8_t node_1, uint8_t node_2)
+{
+    add_edge(node_1, node_2);
+    add_edge(node_2, node_1);
+}
+
+void add_edge(uint8_t start_node, uint8_t node_to_be_connected){
+    #define NOT_FOUND_INDEX 66
+    uint8_t i = 0;
+    uint8_t delete_node_index = NOT_FOUND_INDEX;
+    uint8_t check_node;
+
+    // search for end
+    while(board_graph[start_node][i] != FAKE_NEIGHBOUR){
+        i++;
+
+        if (i>=NEIGHBOURS_SIZE){
+            raise_error(NEIGHBOURS_OUT_OF_BOUNDS);
+        }
+    }
+
+    // add node
+    board_graph[start_node][i] = node_to_be_connected;
 }
 
 void delete_edge(uint8_t start_node, uint8_t node_to_be_disconnected)
@@ -144,6 +236,79 @@ void graph_node_get_neighbours_at_init(uint8_t row, uint8_t col, uint8_t *neighb
 uint8_t graph_node_index_from_row_col(uint8_t row, uint8_t col)
 {
     return row * 9 + col;
+}
+
+uint8_t graph_get_orhtogonal_neighbour_node_if_not_blocked(uint8_t node_index, int8_t direction){
+    // direct neighbour N,E,S,W = 0,1,3,4
+    // if not accessible, will return FAKE_NEIGHBOUR
+
+    uint8_t neighbour_index;
+
+    switch(direction){
+    case(0):{
+        if (node_index > 71){
+            return FAKE_NEIGHBOUR;
+        }else{
+            neighbour_index = node_index + 9;
+        }
+        break;
+    }
+    case(1):{
+        if ((node_index + 1) % 9 == 0){
+            return FAKE_NEIGHBOUR;
+        }else{
+           neighbour_index = node_index + 1;
+        }
+        break;
+    }
+    case(2):{
+        if (node_index <9){
+            return FAKE_NEIGHBOUR;
+        }else{
+            neighbour_index = node_index - 9;
+        }
+        break;
+    }
+    case(3):{
+        if ((node_index) % 9 == 0){
+            return FAKE_NEIGHBOUR;
+        }else{
+            neighbour_index = node_index - 1;
+        }
+        break;
+    }
+    default:
+        {
+            raise_error(ERROR_NOT_AN_ORTHOGONAL_DIRECTION);
+        }
+
+    }
+
+    // neighbour is identified. But, are they connected?
+    if (get_edge_exists(node_index, neighbour_index)){
+        return neighbour_index;
+    }else{
+        return FAKE_NEIGHBOUR;
+    }
+
+}
+
+int8_t graph_delta_of_distances(uint8_t start_node_target_to_north, uint8_t start_node_target_to_south){
+    //delta is the difference in path length between two paths. in python : delta = toSouthPathLength - toNorthPathLength
+
+    // delta = target_south - target_north
+    // --> delta negative: to south player is winning
+    // --> delta positive: to north player is winning
+    uint8_t dist_to_south = graph_get_distance_to_winning_square(1, start_node_target_to_south);
+        
+    if (dist_to_south == PAWN_TARGET_NOT_REACHABLE){
+        return PAWN_TARGET_NOT_REACHABLE;
+    }
+    uint8_t dist_to_north = graph_get_distance_to_winning_square(0, start_node_target_to_north);
+    if (dist_to_north == PAWN_TARGET_NOT_REACHABLE){
+        return PAWN_TARGET_NOT_REACHABLE;
+    }
+    return dist_to_south - dist_to_north;
 }
 
 uint8_t graph_get_distance_to_winning_square(uint8_t target_south_else_north, uint8_t start_node)
@@ -259,12 +424,8 @@ uint8_t graph_get_distance_to_winning_square(uint8_t target_south_else_north, ui
         // add node as DONE (so ti )
         visited[active_node] = VISITED;
     }
+
+    return PAWN_TARGET_NOT_REACHABLE;
 }
 
 
-void raise_error(uint8_t error_code)
-{
-    while (1)
-    {
-    };
-}

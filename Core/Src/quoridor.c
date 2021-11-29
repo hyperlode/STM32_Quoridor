@@ -17,9 +17,9 @@ void autoplay_game_init()
 
 void autoplay_game_next_move()
 {
-    char next_move[2];
-    autoplay_next_move(next_move);
-    move_by_notation(next_move);
+    
+    uint8_t next_move_index = autoplay_next_move();
+    //move_by_notation(next_move);
     display_game_state();
 }
 

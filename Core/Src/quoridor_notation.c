@@ -202,44 +202,13 @@ uint8_t notation_to_move_index_wall(char *wall_position_as_notation)
     uint8_t offset;
     if (horizontal_else_vertical)
     {
-        offset = 12;
+        offset = MOVE_INDEX_FIRST_HORIZONTAL_WALL;
     }
     else
     {
-        offset = 76;
+        offset = MOVE_INDEX_FIRST_VERTICAL_WALL;
     }
     return offset - 1 + 8 * (row - 1) + col;
 }
 
-void move_index_to_row_col_dir(uint8_t move_index, uint8_t *row_col_dir)
-{
-    if (move_index < MOVE_INDEX_FIRST_WALL)
-    {
-        raise_error(ERROR_NOT_A_WALL);
-        return;
-    }
 
-    uint8_t offset;
-    if (move_index < MOVE_INDEX_FIRST_VERTICAL_WALL)
-    { // horizontal 
-        offset = 12;
-        row_col_dir[2] = 1;
-    }
-    else
-    {
-        offset = 76;
-        row_col_dir[2] = 0;
-    }
-
-    move_index -= offset;
-
-    row_col_dir[0] = (move_index / 8) + 1;
-    row_col_dir[1] = (move_index % 8) + 1;
-}
-
-void raise_error(uint8_t error_code)
-{
-    while (1)
-    {
-    };
-}

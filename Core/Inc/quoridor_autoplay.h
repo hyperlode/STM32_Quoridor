@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 
-void autoplay_next_move(char* move);
+uint8_t autoplay_next_move();
+// void autoplay_analyse_move_wall(uint8_t move_index, int8_t* delta);
 
 #endif //QUORIDOR_AUTOPLAY_H
