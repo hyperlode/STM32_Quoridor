@@ -36,7 +36,7 @@ uint8_t check_move_possible_pawn_L_jump(player, start_node, direction_1, directi
 
 uint8_t pawn_get_position_as_node_index(uint8_t player);
 void pawn_get_position_as_row_col(uint8_t* position, uint8_t player);
-
+uint8_t row_col_dir_to_move_index(uint8_t *row_col_dir);
 
 _END_STD_C
 

@@ -10,9 +10,9 @@ static uint8_t move_counter;
 static Player players[2];
 
 uint8_t moves_indeces[MAX_MOVES_COUNT];
-uint8_t moves_delta[140]; // store all deltas of moves. Combine with the "move_index_possible" to only check the relevant indeces.
+uint8_t moves_delta[140]; // store all deltas of moves. Combine with the "move_indeces_valid_for_current_board" to only check the relevant indeces.
 
-uint8_t move_index_possible[140]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
+uint8_t move_indeces_valid_for_current_board[140]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
 
 void game_init(void)
 {
@@ -38,32 +38,39 @@ void game_init(void)
 
     move_counter = 0;
 }
-void analyse_possible_moves(){
+void analyse_possible_moves()
+{
     analyse_possible_moves_pawn();
     analyse_possible_moves_walls();
 }
 
-void analyse_possible_moves_walls(){
-    for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++){
+void analyse_possible_moves_walls()
+{
+    for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++)
+    {
 
         //uint8_t row_col_dir [3];
         // move_index_to_row_col_dir(move_index, row_col_dir);
+        if (move_indeces_valid_for_current_board[i])
+        {
+            graph_wall_add(i);
+            uint8_t delta;
+            delta = graph_delta_of_distances(
+                pawn_get_position_as_node_index(0),
+                pawn_get_position_as_node_index(1));
 
-        graph_wall_add(i);
-        uint8_t delta;
-        delta = graph_delta_of_distances(
-            pawn_get_position_as_node_index(0),
-            pawn_get_position_as_node_index(1));
-
-        moves_delta[i] = delta;
-        move_index_possible [i] = (delta != PAWN_TARGET_NOT_REACHABLE);
-        graph_wall_remove(i);
+            moves_delta[i] = delta;
+            move_indeces_valid_for_current_board[i] = (delta != PAWN_TARGET_NOT_REACHABLE);
+            graph_wall_remove(i);
+        }
     }
 }
-void analyse_possible_moves_pawn(){
+
+void analyse_possible_moves_pawn()
+{
     for (uint8_t i = 0; i < MOVE_INDEX_FIRST_WALL; i++)
     {
-        move_index_possible[i] = check_move_possible_pawn(i, get_playing_player());
+        move_indeces_valid_for_current_board[i] = check_move_possible_pawn(i, get_playing_player());
     }
 }
 
@@ -85,7 +92,13 @@ void next_move_loaded_game(void)
 
 void make_move(uint8_t move_index)
 {
-    
+
+    // check if move is in the possible moves list
+    if (!move_indeces_valid_for_current_board[move_index]){
+        raise_error(ERROR_NOT_A_VALID_MOVE_ON_THIS_BOARD);
+    }
+
+    // execute move
 
     if (move_index == MOVE_INDEX_END_OF_GAME)
     {
@@ -94,28 +107,22 @@ void make_move(uint8_t move_index)
     }
     else if (move_index < MOVE_INDEX_FIRST_WALL)
     {
-        // pawn_move_by_notation(player, move_as_notation);
         make_move_pawn(get_playing_player(), move_index);
     }
     else
     {
         make_move_wall(get_playing_player(), move_index);
-        // wall_set_by_notation(player, move_as_notation);
     }
     move_counter++;
 
-
-
-    TODO 
-    update graph with all impossible edges after wall placement.
-    check if wall can be placed: inline overlap! 
     // prepare for next move
     analyse_possible_moves_pawn();
 
     return;
 }
 
-uint8_t get_playing_player(){
+uint8_t get_playing_player()
+{
     return move_counter % 2;
 }
 uint8_t get_opponent(uint8_t player)
@@ -313,10 +320,84 @@ void make_move_wall(uint8_t player, uint8_t move_index)
     uint8_t wall_row_col_dir[3];
     move_index_to_row_col_dir(move_index, wall_row_col_dir);
     set_wall_by_row_col(player, wall_row_col_dir[0], wall_row_col_dir[1], wall_row_col_dir[2]);
-    //graph_wall_add(wall_row_col_dir[0], wall_row_col_dir[1], wall_row_col_dir[2]);
     graph_wall_add(move_index);
+
+    // delete invalid moves from the valid moves list.
+    move_indeces_valid_for_current_board[move_index] = 0;
+    uint8_t r_c_d[3];
+
+    uint8_t invalid_move_index;
+
+    if (wall_row_col_dir[2])
+    {
+        // horizonal
+
+        if (wall_row_col_dir[1] < 8)
+        {
+            r_c_d[0] = wall_row_col_dir[0];
+            r_c_d[1] = wall_row_col_dir[1] + 1;
+            r_c_d[2] = 1;
+            invalid_move_index = row_col_dir_to_move_index(r_c_d);
+            move_indeces_valid_for_current_board[invalid_move_index] = 0;
+        }
+        if (wall_row_col_dir[1] > 1)
+        {
+            r_c_d[0] = wall_row_col_dir[0];
+            r_c_d[1] = wall_row_col_dir[1] - 1;
+            r_c_d[2] = 1;
+            invalid_move_index = row_col_dir_to_move_index(r_c_d);
+            move_indeces_valid_for_current_board[invalid_move_index] = 0;
+        }
+        r_c_d[0] = wall_row_col_dir[0];
+        r_c_d[1] = wall_row_col_dir[1];
+        r_c_d[2] = 0;
+        invalid_move_index = row_col_dir_to_move_index(r_c_d);
+        move_indeces_valid_for_current_board[invalid_move_index] = 0;
+    }
+    else
+    {
+        // vertical
+
+        if (wall_row_col_dir[0] < 8)
+        {
+            r_c_d[0] = wall_row_col_dir[0] + 1;
+            r_c_d[1] = wall_row_col_dir[1];
+            r_c_d[2] = 0;
+            invalid_move_index = row_col_dir_to_move_index(r_c_d);
+            move_indeces_valid_for_current_board[invalid_move_index] = 0;
+        }
+        if (wall_row_col_dir[0] > 1)
+        {
+            r_c_d[0] = wall_row_col_dir[0] - 1;
+            r_c_d[1] = wall_row_col_dir[1];
+            r_c_d[2] = 0;
+            invalid_move_index = row_col_dir_to_move_index(r_c_d);
+            move_indeces_valid_for_current_board[invalid_move_index] = 0;
+        }
+        r_c_d[0] = wall_row_col_dir[0];
+        r_c_d[1] = wall_row_col_dir[1];
+        r_c_d[2] = 1;
+        invalid_move_index = row_col_dir_to_move_index(r_c_d);
+        move_indeces_valid_for_current_board[invalid_move_index] = 0;
+    }
+
     players[player].walls_placed++;
 };
+
+uint8_t row_col_dir_to_move_index(uint8_t *row_col_dir)
+{
+    uint8_t offset;
+    if (row_col_dir[2])
+    { // horizontal
+        offset = MOVE_INDEX_FIRST_WALL;
+    }
+    else
+    {
+        offset = MOVE_INDEX_FIRST_VERTICAL_WALL;
+    }
+
+    return ((row_col_dir[0] - 1) * 8) + (row_col_dir[1] - 1) + offset;
+}
 
 void move_index_to_row_col_dir(uint8_t move_index, uint8_t *row_col_dir)
 {
@@ -329,12 +410,12 @@ void move_index_to_row_col_dir(uint8_t move_index, uint8_t *row_col_dir)
     uint8_t offset;
     if (move_index < MOVE_INDEX_FIRST_VERTICAL_WALL)
     { // horizontal
-        offset = 12;
+        offset = MOVE_INDEX_FIRST_WALL;
         row_col_dir[2] = 1;
     }
     else
     {
-        offset = 76;
+        offset = MOVE_INDEX_FIRST_VERTICAL_WALL;
         row_col_dir[2] = 0;
     }
 
@@ -353,6 +434,7 @@ void set_wall_by_row_col(uint8_t player, uint8_t row, uint8_t col, uint8_t horiz
 
 void walls_get_all_positions(uint8_t *positions, uint8_t player)
 {
+    // mainly for an output situation to the graphics display
     for (uint8_t i = 0; i < 10; i++)
     {
         positions[i * 3 + 0] = players[player].walls[i].row;
@@ -482,5 +564,3 @@ void pawn_get_position_as_row_col(uint8_t *position, uint8_t player)
     position[1] = players[player].pawn.col;
     return position;
 }
-
-
