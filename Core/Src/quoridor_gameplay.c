@@ -11,17 +11,17 @@ static Player players[2];
 
 uint8_t moves_indeces[MAX_MOVES_COUNT];
 
-int8_t moves_delta[140]; // store all deltas of moves. Combine with the "move_indeces_valid_for_current_board" to only check the relevant indeces.
+int8_t moves_delta[140];                           // store all deltas of moves. Combine with the "move_indeces_valid_for_current_board" to only check the relevant indeces.
 uint8_t move_indeces_valid_for_current_board[140]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
 
 void game_init(void)
 {
-    players[0].pawn.row += 0;
-    players[0].pawn.col += 4;
+    players[0].pawn.row = 0;
+    players[0].pawn.col = 4;
     players[0].walls_placed = 0;
 
-    players[1].pawn.row += 8;
-    players[1].pawn.col += 4;
+    players[1].pawn.row = 8;
+    players[1].pawn.col = 4;
     players[1].walls_placed = 0;
 
     for (uint8_t player = 0; player < 2; player++)
@@ -33,21 +33,26 @@ void game_init(void)
             players[player].walls[i].horizontal_else_vertical = 0;
         }
     }
-    for(uint8_t i=0;i<MOVE_INDEX_COUNT;i++){
+    for (uint8_t i = 0; i < MOVE_INDEX_COUNT; i++)
+    {
         move_indeces_valid_for_current_board[i] = 1;
+        // moves_delta[i] = 0;
     }
     graph_init();
 
     analyse_possible_moves(get_playing_player()); // player is 0 at init.
 
-
-
     move_counter = 0;
 }
 
-int8_t  get_delta_of_move_index(uint8_t move_index){
-    
-       return moves_delta[move_index];
+uint8_t get_walls_placed(uint8_t player){
+    return players[player].walls_placed;
+}
+
+int8_t get_delta_of_move_index(uint8_t move_index)
+{
+
+    return moves_delta[move_index];
 }
 
 void analyse_possible_moves(uint8_t player)
@@ -70,15 +75,13 @@ void analyse_possible_moves_walls()
 
             moves_delta[i] = delta;
             move_indeces_valid_for_current_board[i] = (delta != PAWN_TARGET_NOT_REACHABLE);
-           
+
             graph_wall_remove(i);
         }
     }
-   
-        // break
-        ;
-   
 
+    // break
+    ;
 }
 
 void analyse_possible_moves_pawn(uint8_t player)
@@ -90,8 +93,8 @@ void analyse_possible_moves_pawn(uint8_t player)
         valid = check_move_possible_pawn(move_index, get_playing_player());
         move_indeces_valid_for_current_board[move_index] = valid;
 
-
-        if (valid){
+        if (valid)
+        {
             // calculate delta for the given move.
 
             // the pawn is not moved. This is just looking at the nodes.
@@ -99,24 +102,40 @@ void analyse_possible_moves_pawn(uint8_t player)
             uint8_t player_node = pawn_get_position_as_node_index(player);
             uint8_t pawn_moved_node = graph_get_pawn_move_destination_node(player_node, move_index);
 
-            uint8_t delta;
-            if (player){
-               delta = graph_delta_of_distances(
-                    pawn_get_position_as_node_index(0),
-                    pawn_moved_node
-                ); 
-            }else{
-                delta = graph_delta_of_distances(
-                    pawn_moved_node,
-                    pawn_get_position_as_node_index(1)
-                );
+            int8_t delta=0;
+            if (player)
+            {
+                // to south (neg delta is better)
+                for (uint8_t winning_node=0;winning_node<9;winning_node++){
+                    if (pawn_moved_node == winning_node){
+                        delta = -1 * DELTA_WINNING_MOVE_MAGNITUDE;
+                    }
+                }
+                if (delta !=  -1 * DELTA_WINNING_MOVE_MAGNITUDE){
+                    delta = graph_delta_of_distances(
+                        pawn_get_position_as_node_index(0),
+                        pawn_moved_node);
+                }
+            }
+            else
+            {
+                for (uint8_t winning_node=72;winning_node<81;winning_node++){
+                    if (pawn_moved_node == winning_node){
+                        delta = DELTA_WINNING_MOVE_MAGNITUDE;
+                    }
+                }
+                if (delta != DELTA_WINNING_MOVE_MAGNITUDE){
+                    delta = graph_delta_of_distances(
+                        pawn_moved_node,
+                        pawn_get_position_as_node_index(1));
+                }
             }
             moves_delta[move_index] = delta;
-
-        }else{
+        }
+        else
+        {
             moves_delta[move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
         }
-
     }
 }
 
@@ -140,7 +159,8 @@ void make_move(uint8_t move_index)
 {
 
     // check if move is in the possible moves list
-    if (!move_indeces_valid_for_current_board[move_index]){
+    if (!move_indeces_valid_for_current_board[move_index])
+    {
         raise_error(ERROR_NOT_A_VALID_MOVE_ON_THIS_BOARD);
     }
 
@@ -365,6 +385,11 @@ uint8_t check_move_possible_pawn_L_jump(player, start_node, direction_1, directi
 void make_move_wall(uint8_t player, uint8_t move_index)
 {
     uint8_t wall_row_col_dir[3];
+
+    if (players[player].walls_placed >= 10){
+        raise_error(ERROR_NO_MORE_WALLS_LEFT);
+    }
+
     move_index_to_row_col_dir(move_index, wall_row_col_dir);
     set_wall_by_row_col(player, wall_row_col_dir[0], wall_row_col_dir[1], wall_row_col_dir[2]);
     graph_wall_add(move_index);

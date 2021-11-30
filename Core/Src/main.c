@@ -136,9 +136,9 @@ int main(void)
   {
     if(HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_0) != button_pressed_edge_memory && HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_0)){
       // HAL_GPIO_WritePin(led_orange_GPIO_Port,led_orange_Pin, GPIO_PIN_SET);
-     // srand(HAL_GetTick());
+      srand(HAL_GetTick());
       HAL_GPIO_TogglePin(led_orange_GPIO_Port,led_orange_Pin);
-      if (get_move_counter() >= 4){
+      if (get_move_counter() >= 12){
 
         get_move_counter();
       }
