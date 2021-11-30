@@ -30,6 +30,7 @@ _BEGIN_STD_C
 #define ERROR_NOTATION_NOT_AN_ORTHO_PAWN_MOVE_JUMP 13
 #define ERROR_NOTATION_NOT_A_DIAGONAL_PAWN_MOVE 14
 #define ERROR_NOT_A_VALID_MOVE_ON_THIS_BOARD 15
+#define ERROR_FAKE_NODE 16
 
 
 struct Pawn{
@@ -52,4 +53,7 @@ struct Player{
 };
 
 typedef struct Player Player;
+
+_END_STD_C
+
 #endif // QUORIDOR_CONFIG_H

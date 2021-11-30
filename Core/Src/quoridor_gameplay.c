@@ -10,7 +10,7 @@ static uint8_t move_counter;
 static Player players[2];
 
 uint8_t moves_indeces[MAX_MOVES_COUNT];
-uint8_t moves_delta[140]; // store all deltas of moves. Combine with the "move_indeces_valid_for_current_board" to only check the relevant indeces.
+int8_t moves_delta[140]; // store all deltas of moves. Combine with the "move_indeces_valid_for_current_board" to only check the relevant indeces.
 
 uint8_t move_indeces_valid_for_current_board[140]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
 
@@ -33,14 +33,20 @@ void game_init(void)
             players[player].walls[i].horizontal_else_vertical = 0;
         }
     }
-
+    for(uint8_t i=0;i<MOVE_INDEX_COUNT;i++){
+        move_indeces_valid_for_current_board[i] = 1;
+    }
     graph_init();
+
+    analyse_possible_moves(get_playing_player()); // player is 0 at init.
+
+
 
     move_counter = 0;
 }
-void analyse_possible_moves()
+void analyse_possible_moves(uint8_t player)
 {
-    analyse_possible_moves_pawn();
+    analyse_possible_moves_pawn(player);
     analyse_possible_moves_walls();
 }
 
@@ -48,29 +54,61 @@ void analyse_possible_moves_walls()
 {
     for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++)
     {
-
-        //uint8_t row_col_dir [3];
-        // move_index_to_row_col_dir(move_index, row_col_dir);
         if (move_indeces_valid_for_current_board[i])
         {
             graph_wall_add(i);
-            uint8_t delta;
+            int8_t delta;
             delta = graph_delta_of_distances(
                 pawn_get_position_as_node_index(0),
                 pawn_get_position_as_node_index(1));
 
             moves_delta[i] = delta;
             move_indeces_valid_for_current_board[i] = (delta != PAWN_TARGET_NOT_REACHABLE);
+           
             graph_wall_remove(i);
         }
     }
+   
+        // break
+        ;
+   
+
 }
 
-void analyse_possible_moves_pawn()
+void analyse_possible_moves_pawn(uint8_t player)
 {
-    for (uint8_t i = 0; i < MOVE_INDEX_FIRST_WALL; i++)
+    // player = moving player index (0(toNorth) or 1)
+    for (uint8_t move_index = 0; move_index < MOVE_INDEX_FIRST_WALL; move_index++)
     {
-        move_indeces_valid_for_current_board[i] = check_move_possible_pawn(i, get_playing_player());
+        uint8_t valid;
+        valid = check_move_possible_pawn(move_index, get_playing_player());
+        move_indeces_valid_for_current_board[move_index] = valid;
+
+
+        if (valid){
+            // calculate delta for the given move.
+
+            // the pawn is not moved. This is just looking at the nodes.
+
+            uint8_t player_node = pawn_get_position_as_node_index(player);
+            uint8_t pawn_moved_node = graph_get_pawn_move_destination_node(player_node, move_index);
+
+            uint8_t delta;
+            if (player){
+               delta = graph_delta_of_distances(
+                    pawn_get_position_as_node_index(0),
+                    pawn_moved_node
+                ); 
+            }else{
+                delta = graph_delta_of_distances(
+                    pawn_moved_node,
+                    pawn_get_position_as_node_index(1)
+                );
+            }
+            moves_delta[move_index] = delta;
+
+        }
+
     }
 }
 
@@ -113,10 +151,11 @@ void make_move(uint8_t move_index)
     {
         make_move_wall(get_playing_player(), move_index);
     }
+
     move_counter++;
 
     // prepare for next move
-    analyse_possible_moves_pawn();
+    analyse_possible_moves(get_playing_player());
 
     return;
 }
@@ -137,15 +176,15 @@ uint8_t check_move_possible_pawn(uint8_t move_index, uint8_t player)
 
     if (move_index < 4)
     {
-        check_move_possible_pawn_orthogonal(move_index, player);
+        return check_move_possible_pawn_orthogonal(move_index, player);
     }
     else if (move_index < 8)
     {
-        check_move_possible_pawn_orthogonal_jump(move_index, player);
+        return check_move_possible_pawn_orthogonal_jump(move_index, player);
     }
     else if (move_index < 12)
     {
-        check_move_possible_pawn_diagonal(move_index, player);
+        return check_move_possible_pawn_diagonal(move_index, player);
     }
     else
     {

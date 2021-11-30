@@ -12,7 +12,9 @@ uint8_t get_move_counter();
 void next_move_loaded_game(void);
 void load_game_by_notation_one_string(moves_as_notation_one_string);
 
-void analyse_possible_moves_pawn();
+
+void analyse_possible_moves(uint8_t player);
+void analyse_possible_moves_pawn(uint8_t player);
 
 void set_wall_by_row_col(uint8_t player, uint8_t row, uint8_t col, uint8_t horizontal_else_vertical);
 void walls_get_all_positions(uint8_t* positions, uint8_t player);

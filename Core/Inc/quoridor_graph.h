@@ -28,7 +28,11 @@ int8_t  graph_delta_of_distances(uint8_t start_node_target_to_north, uint8_t sta
 uint8_t graph_get_distance_to_winning_square(uint8_t target_south_else_north, uint8_t start_node);
 uint8_t graph_node_index_from_row_col(uint8_t row, uint8_t col);
 
-uint8_t graph_get_orhtogonal_neighbour_node_if_not_blocked(uint8_t node_index, int8_t direction);
+uint8_t graph_get_pawn_move_destination_node(uint8_t node_index, uint8_t move_index);
+uint8_t graph_get_diagonal_neighbour_node(uint8_t node_index, uint8_t move_index);
+uint8_t graph_get_orhtogonal_neighbour_node_jump(uint8_t node_index, uint8_t move_index);
+uint8_t graph_get_orhtogonal_neighbour_node(uint8_t node_index, uint8_t direction);
+uint8_t graph_get_orhtogonal_neighbour_node_if_not_blocked(uint8_t node_index, uint8_t direction);
 
 _END_STD_C
 

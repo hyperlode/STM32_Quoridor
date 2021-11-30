@@ -79,6 +79,7 @@ Core/Src/quoridor_gameplay.c \
 Core/Src/quoridor_graph.c \
 Core/Src/quoridor_error.c \
 Core/Src/quoridor_notation.c \
+Core/Src/quoridor_tests.c \
 Drivers/ssd1306/ssd1306_fonts.c \
 Core/Src/system_stm32f4xx.c \
 Middlewares/ST/STM32_USB_Host_Library/Core/Src/usbh_core.c \

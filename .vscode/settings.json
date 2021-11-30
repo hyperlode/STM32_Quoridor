@@ -9,7 +9,9 @@
         "quoridor_board.h": "c",
         "string.h": "c",
         "quoridor_graph.h": "c",
-        "quoridor_notation.h": "c"
+        "quoridor_notation.h": "c",
+        "quoridor.h": "c",
+        "quoridor_tests.h": "c"
     },
     "cortex-debug.armToolchainPath": "E:\\TOOLS\\PROGRAMMING\\GNU ARM EMBEDDED TOOLCHAIN\\10 2020-Q4-MAJOR\\BIN",
     "cortex-debug.openocdPath": "E:\\TOOLS\\PROGRAMMING\\STM32 TOOLCHAIN\\OPENOCD-20210729\\OPENOCD-20210729-0.11.0\\BIN\\OPENOCD.EXE"
