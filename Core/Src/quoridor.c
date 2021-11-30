@@ -18,8 +18,8 @@ void autoplay_game_init()
 void autoplay_game_next_move()
 {
     
-    uint8_t next_move_index = autoplay_next_move();
-    //move_by_notation(next_move);
+    autoplay_execute_next_move();
+    
     display_game_state();
 }
 

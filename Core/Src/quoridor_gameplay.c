@@ -10,8 +10,8 @@ static uint8_t move_counter;
 static Player players[2];
 
 uint8_t moves_indeces[MAX_MOVES_COUNT];
-int8_t moves_delta[140]; // store all deltas of moves. Combine with the "move_indeces_valid_for_current_board" to only check the relevant indeces.
 
+int8_t moves_delta[140]; // store all deltas of moves. Combine with the "move_indeces_valid_for_current_board" to only check the relevant indeces.
 uint8_t move_indeces_valid_for_current_board[140]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
 
 void game_init(void)
@@ -44,6 +44,12 @@ void game_init(void)
 
     move_counter = 0;
 }
+
+int8_t  get_delta_of_move_index(uint8_t move_index){
+    
+       return moves_delta[move_index];
+}
+
 void analyse_possible_moves(uint8_t player)
 {
     analyse_possible_moves_pawn(player);
@@ -107,6 +113,8 @@ void analyse_possible_moves_pawn(uint8_t player)
             }
             moves_delta[move_index] = delta;
 
+        }else{
+            moves_delta[move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
         }
 
     }
@@ -363,6 +371,8 @@ void make_move_wall(uint8_t player, uint8_t move_index)
 
     // delete invalid moves from the valid moves list.
     move_indeces_valid_for_current_board[move_index] = 0;
+    moves_delta[move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
+
     uint8_t r_c_d[3];
 
     uint8_t invalid_move_index;
@@ -378,6 +388,7 @@ void make_move_wall(uint8_t player, uint8_t move_index)
             r_c_d[2] = 1;
             invalid_move_index = row_col_dir_to_move_index(r_c_d);
             move_indeces_valid_for_current_board[invalid_move_index] = 0;
+            moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
         }
         if (wall_row_col_dir[1] > 1)
         {
@@ -386,12 +397,14 @@ void make_move_wall(uint8_t player, uint8_t move_index)
             r_c_d[2] = 1;
             invalid_move_index = row_col_dir_to_move_index(r_c_d);
             move_indeces_valid_for_current_board[invalid_move_index] = 0;
+            moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
         }
         r_c_d[0] = wall_row_col_dir[0];
         r_c_d[1] = wall_row_col_dir[1];
         r_c_d[2] = 0;
         invalid_move_index = row_col_dir_to_move_index(r_c_d);
         move_indeces_valid_for_current_board[invalid_move_index] = 0;
+        moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
     }
     else
     {
@@ -404,6 +417,7 @@ void make_move_wall(uint8_t player, uint8_t move_index)
             r_c_d[2] = 0;
             invalid_move_index = row_col_dir_to_move_index(r_c_d);
             move_indeces_valid_for_current_board[invalid_move_index] = 0;
+            moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
         }
         if (wall_row_col_dir[0] > 1)
         {
@@ -412,12 +426,14 @@ void make_move_wall(uint8_t player, uint8_t move_index)
             r_c_d[2] = 0;
             invalid_move_index = row_col_dir_to_move_index(r_c_d);
             move_indeces_valid_for_current_board[invalid_move_index] = 0;
+            moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
         }
         r_c_d[0] = wall_row_col_dir[0];
         r_c_d[1] = wall_row_col_dir[1];
         r_c_d[2] = 1;
         invalid_move_index = row_col_dir_to_move_index(r_c_d);
         move_indeces_valid_for_current_board[invalid_move_index] = 0;
+        moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
     }
 
     players[player].walls_placed++;
