@@ -109,7 +109,8 @@ uint8_t autoplay_get_best_next_move(uint8_t player)
     // choose a move
     uint8_t rand_index;
 
-    uint8_t wall_aggressiveness = 50;
+    #define COMPUTER_PLAYER_AGRESSIVENESS 20
+    uint8_t wall_aggressiveness = COMPUTER_PLAYER_AGRESSIVENESS;
 
     uint8_t prioritizes_wall_over_pawn;
 

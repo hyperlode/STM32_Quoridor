@@ -4,6 +4,17 @@
 #include <_ansi.h>
 
 _BEGIN_STD_C
+
+#define BUTTON_NORTH 1
+#define BUTTON_EAST 2 
+#define BUTTON_SOUTH 4
+#define BUTTON_WEST 8 
+#define BUTTON_ENTER 16
+#define BUTTON_TOGGLE 32
+
+
+
+
 #define MAX_MOVES_COUNT 100
 #define MOVES_STRING_LENGTH 100*3  // each move is max 2 chars and a divider
 

@@ -26,8 +26,10 @@
 #include "ssd1306.h"
 #include "ssd1306_tests.h"
 #include "quoridor.h"
+#include "quoridor_config.h"
 #include "quoridor_tests.h"
 #include <string.h>
+#include "buttons.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -134,8 +136,31 @@ int main(void)
   
   while (1)
   {
-    if(HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_0) != button_pressed_edge_memory && HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_0)){
+
+    
+    
+    button_set_state(BUTTON_EAST, HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_10));
+    button_set_state(BUTTON_ENTER, HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_11));
+    button_set_state(BUTTON_NORTH, HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_12));
+    button_set_state(BUTTON_SOUTH, HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_13));
+    button_set_state(BUTTON_WEST, HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_14));
+    button_set_state(BUTTON_TOGGLE, HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_15));
+    buttons_refresh();
+    
+
+
+    // uint8_t button_pressed = HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_0);
+    // uint8_t button_pressed = HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_10); // LEFT
+    // uint8_t button_pressed = HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_11); // OUTER RIGHT
+    // uint8_t button_pressed = HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_12);  // top
+    //uint8_t button_pressed = HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_13); // notfound bottom?!
+    // uint8_t button_pressed = HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_14); // RIGHT
+    // uint8_t button_pressed = HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_15); // outer left
+
+    // if(button_pressed != button_pressed_edge_memory && button_pressed){
       // HAL_GPIO_WritePin(led_orange_GPIO_Port,led_orange_Pin, GPIO_PIN_SET);
+    if (button_get_edge_up_single_readout(BUTTON_ENTER)){
+
       srand(HAL_GetTick());
       HAL_GPIO_TogglePin(led_orange_GPIO_Port,led_orange_Pin);
       if (get_move_counter() >= 12){
@@ -151,10 +176,8 @@ int main(void)
   
       
 
-    }else{
-      // HAL_GPIO_WritePin(led_orange_GPIO_Port,led_orange_Pin, GPIO_PIN_RESET);
     }
-    button_pressed_edge_memory = HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_0);
+    // button_pressed_edge_memory = button_pressed;
 
     /* USER CODE END WHILE */
     MX_USB_HOST_Process();
@@ -162,7 +185,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	
     // HAL_GPIO_TogglePin(led_orange_GPIO_Port,led_orange_Pin);
-    HAL_Delay(40);
+    // HAL_Delay(40);
     
   }
 
@@ -466,6 +489,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BOOT1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PE10 PE11 PE12 PE13
+                           PE14 PE15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13
+                          |GPIO_PIN_14|GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pin : CLK_IN_Pin */
   GPIO_InitStruct.Pin = CLK_IN_Pin;
