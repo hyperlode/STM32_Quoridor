@@ -3,10 +3,33 @@
 #include "quoridor_config.h"
 #include "quoridor_board.h"
 #include "quoridor_gameplay.h"
+#include "human_player.h"
 
 uint8_t distances_to_end[2];
 uint8_t players_positions[2][2];
 uint8_t players_walls[2][30];
+
+void human_vs_computer_init()
+{
+    human_init();
+    game_init();
+    display_game_state();
+}
+
+void quoridor_human_interaction(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
+{
+
+    uint8_t cursor_position[2];
+    human_button_press(north, east, south, west, enter, toggle, cursor_position);
+
+    // board_toggle_
+    board_set_cursor(cursor_position); 
+    display_game_state();
+}
+
+void quoridor_human_turn_init(){
+    human_turn_init();
+}
 
 void autoplay_game_init()
 {
@@ -16,18 +39,18 @@ void autoplay_game_init()
     display_game_state();
 }
 
-
-void move_cursor(){
-
+void move_cursor()
+{
 }
 
 void autoplay_game_next_move()
 {
-    if (get_game_done()){
+    if (get_game_done())
+    {
         autoplay_game_init();
         return;
     }
-    
+
     autoplay_execute_next_move();
     display_game_state();
 }

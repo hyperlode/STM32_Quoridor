@@ -30,6 +30,35 @@ void oled_init(){
 static Player players [2];
 static uint8_t move_counter_b;
 
+static cursor_col = CURSOR_NOT_SHOWN;
+static cursor_row = CURSOR_NOT_SHOWN;
+
+
+void board_set_cursor(uint8_t* row_col){
+    cursor_row = row_col[0];  
+    cursor_col = row_col[1];
+}
+
+void board_draw_cursor(){
+
+    if (cursor_row == CURSOR_NOT_SHOWN || cursor_col == CURSOR_NOT_SHOWN){
+        return;
+    }
+
+    uint8_t row = 8 - cursor_row;
+    uint8_t col = cursor_col;
+
+
+
+    ssd1306_DrawRectangle(
+        PAWN_CELL_OFFSET_X + BOARD_OFFSET_X + col*BOARD_CELL_SPACING - 1, 
+        PAWN_CELL_OFFSET_Y + BOARD_OFFSET_Y + row*BOARD_CELL_SPACING - 1, 
+        PAWN_CELL_OFFSET_X + BOARD_OFFSET_X + col*BOARD_CELL_SPACING + PAWN_WIDTH + 1, 
+        PAWN_CELL_OFFSET_Y + BOARD_OFFSET_Y + row*BOARD_CELL_SPACING + PAWN_HEIGHT + 1,
+        Black
+        );
+}
+
 void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* player_1_walls, uint8_t* player_2_walls, uint8_t* distances_to_win, uint8_t move_counter_a){
    
     uint8_t* walls;
@@ -101,8 +130,12 @@ void board_state_draw(){
     ssd1306_SetCursor(70, 48);
     ssd1306_WriteString(move_counter_text, Font_7x10, Black);
 
+    board_draw_cursor();
      
     board_draw_outline();  // save for last to overwrite wall placement white dots.
+
+
+
     ssd1306_UpdateScreen();
 }
 

@@ -12,6 +12,8 @@ _BEGIN_STD_C
 #define BUTTON_ENTER 16
 #define BUTTON_TOGGLE 32
 
+#define CURSOR_NOT_SHOWN 255
+
 
 
 

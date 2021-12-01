@@ -124,42 +124,56 @@ int main(void)
 
   uint8_t button_pressed_edge_memory;
 
-   char moves_lode_notation [MOVES_STRING_LENGTH] = "N,S,N,S,N,S,2d,4d,2f,E,2b,a1,E,E,N,5f,E,E,2h,g4,c5,S,c3,N,c7,8b,3h,W,W,W,W,N,N,6d,f6,N,E,W,N,7e,W,N,W,8d,f8,W,N,W,E,W,E,W,N";
-//   char moves_lode_notation [MOVES_STRING_LENGTH] = "h1,N,S,N,S,N,S,N,SS,a2,h3";
-//  char moves_lode_notation [MOVES_STRING_LENGTH] = "2b,d2,N,S,N,S,N,S,N,SS,a2,h3";
-  #define QUORIDOR_AUTOPLAY
-  #ifdef QUORIDOR_AUTOPLAY
-   autoplay_game_init();
+  char moves_lode_notation [MOVES_STRING_LENGTH] = "N,S,N,S,N,S,2d,4d,2f,E,2b,a1,E,E,N,5f,E,E,2h,g4,c5,S,c3,N,c7,8b,3h,W,W,W,W,N,N,6d,f6,N,E,W,N,7e,W,N,W,8d,f8,W,N,W,E,W,E,W,N";
+//char moves_lode_notation [MOVES_STRING_LENGTH] = "h1,N,S,N,S,N,S,N,SS,a2,h3";
+//char moves_lode_notation [MOVES_STRING_LENGTH] = "2b,d2,N,S,N,S,N,S,N,SS,a2,h3";
+
+
+   #define QUORIDOR_AUTOPLAY
+// #define PLAYER_1_HUMAN
+// #define PLAYER_2_HUMAN
+
+  #ifdef PLAYER_1_HUMAN
+    #ifdef PLAYER_2_HUMAN
+        human_vs_human_init();
+    #else
+        human_vs_computer_init();
+        quoridor_human_turn_init();
+    #endif
+  #elif defined  QUORIDOR_AUTOPLAY
+    autoplay_game_init();
   #else
     replay_game_init(moves_lode_notation);
   #endif
-  
   while (1)
   {
 
     
-    
-    button_set_state(BUTTON_EAST, HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_10));
+    button_set_state(BUTTON_EAST, HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_14));
     button_set_state(BUTTON_ENTER, HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_11));
     button_set_state(BUTTON_NORTH, HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_12));
     button_set_state(BUTTON_SOUTH, HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_13));
-    button_set_state(BUTTON_WEST, HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_14));
+    button_set_state(BUTTON_WEST, HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_10));
     button_set_state(BUTTON_TOGGLE, HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_15));
     buttons_refresh();
     
+    #ifdef PLAYER_1_HUMAN
+    
+    // if (button_get_edge_up_single_readout(BUTTON_NORTH)){
+    //     HAL_GPIO_TogglePin(led_orange_GPIO_Port,led_orange_Pin);
+    // }
+    quoridor_human_interaction(
+        button_get_edge_up_single_readout(BUTTON_NORTH),
+        button_get_edge_up_single_readout(BUTTON_EAST),
+        button_get_edge_up_single_readout(BUTTON_SOUTH),
+        button_get_edge_up_single_readout(BUTTON_WEST),
+        button_get_edge_up_single_readout(BUTTON_ENTER),
+        button_get_edge_up_single_readout(BUTTON_TOGGLE)
+    );
 
+    #else
 
-    // uint8_t button_pressed = HAL_GPIO_ReadPin (GPIOA, GPIO_PIN_0);
-    // uint8_t button_pressed = HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_10); // LEFT
-    // uint8_t button_pressed = HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_11); // OUTER RIGHT
-    // uint8_t button_pressed = HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_12);  // top
-    //uint8_t button_pressed = HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_13); // notfound bottom?!
-    // uint8_t button_pressed = HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_14); // RIGHT
-    // uint8_t button_pressed = HAL_GPIO_ReadPin (GPIOE, GPIO_PIN_15); // outer left
-
-    // if(button_pressed != button_pressed_edge_memory && button_pressed){
-      // HAL_GPIO_WritePin(led_orange_GPIO_Port,led_orange_Pin, GPIO_PIN_SET);
-    if (button_get_edge_up_single_readout(BUTTON_ENTER)){
+    if (button_get_edge_up_single_readout(BUTTON_ENTER) || button_get_state_debounced(BUTTON_TOGGLE)){
 
       srand(HAL_GetTick());
       HAL_GPIO_TogglePin(led_orange_GPIO_Port,led_orange_Pin);
@@ -168,7 +182,8 @@ int main(void)
         get_move_counter();
       }
 
-        #ifdef QUORIDOR_AUTOPLAY
+
+       #ifdef   QUORIDOR_AUTOPLAY
             autoplay_game_next_move();
         #else
             replay_game_next_move();
@@ -177,6 +192,7 @@ int main(void)
       
 
     }
+    #endif
     // button_pressed_edge_memory = button_pressed;
 
     /* USER CODE END WHILE */

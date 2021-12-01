@@ -14,6 +14,7 @@ uint8_t moves_indeces[MAX_MOVES_COUNT];
 int8_t moves_delta[140];                           // store all deltas of moves. Combine with the "move_indeces_valid_for_current_board" to only check the relevant indeces.
 uint8_t move_indeces_valid_for_current_board[140]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
 
+
 void game_init(void)
 {
     players[0].pawn.row = 0;
@@ -43,6 +44,10 @@ void game_init(void)
     analyse_possible_moves(get_playing_player()); // player is 0 at init.
 
     move_counter = 0;
+}
+
+uint8_t get_move_index_valid(uint8_t move_index){
+    return move_indeces_valid_for_current_board[move_index];
 }
 
 uint8_t get_walls_placed(uint8_t player){
