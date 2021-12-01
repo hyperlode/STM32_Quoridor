@@ -16,6 +16,11 @@ void autoplay_game_init()
     display_game_state();
 }
 
+
+void move_cursor(){
+
+}
+
 void autoplay_game_next_move()
 {
     if (get_game_done()){
