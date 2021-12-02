@@ -30,23 +30,40 @@ void oled_init(){
 static Player players [2];
 static uint8_t move_counter_b;
 
-static cursor_col = CURSOR_NOT_SHOWN;
-static cursor_row = CURSOR_NOT_SHOWN;
+static cursor_pawn_col = CURSOR_NOT_SHOWN;
+static cursor_pawn_row = CURSOR_NOT_SHOWN;
+
+static cursor_wall_row_col_dir[3];
 
 
-void board_set_cursor(uint8_t* row_col){
-    cursor_row = row_col[0];  
-    cursor_col = row_col[1];
+void board_set_cursor_wall(uint8_t* row_col_dir){
+    
+    cursor_wall_row_col_dir[0] = row_col_dir[0];
+    cursor_wall_row_col_dir[1] = row_col_dir[1];
+    cursor_wall_row_col_dir[2] = row_col_dir[2];
 }
 
-void board_draw_cursor(){
+void board_set_cursor(uint8_t* row_col){
+    cursor_pawn_row = row_col[0];  
+    cursor_pawn_col = row_col[1];
+}
 
-    if (cursor_row == CURSOR_NOT_SHOWN || cursor_col == CURSOR_NOT_SHOWN){
+void board_draw_cursor_wall(){
+     if (cursor_wall_row_col_dir[0] == CURSOR_NOT_SHOWN || cursor_wall_row_col_dir[1] == CURSOR_NOT_SHOWN){
         return;
     }
 
-    uint8_t row = 8 - cursor_row;
-    uint8_t col = cursor_col;
+    board_draw_wall( cursor_wall_row_col_dir[0], cursor_wall_row_col_dir[1], cursor_wall_row_col_dir[2], 1 );
+}
+
+void oard_draw_cursor_pawn(){
+
+    if (cursor_pawn_row == CURSOR_NOT_SHOWN || cursor_pawn_col == CURSOR_NOT_SHOWN){
+        return;
+    }
+
+    uint8_t row = 8 - cursor_pawn_row;
+    uint8_t col = cursor_pawn_col;
 
 
 
@@ -130,7 +147,8 @@ void board_state_draw(){
     ssd1306_SetCursor(70, 48);
     ssd1306_WriteString(move_counter_text, Font_7x10, Black);
 
-    board_draw_cursor();
+    oard_draw_cursor_pawn();
+    board_draw_cursor_wall();
      
     board_draw_outline();  // save for last to overwrite wall placement white dots.
 
@@ -252,15 +270,15 @@ void board_draw_wall(uint8_t row, uint8_t col, uint8_t horizontal_else_vertical,
 
         
     }
-    return;
+    
     // draw rectangle around the wall for fat walls
     if (fat_wall){
         wall_thickness = 2;
         if (horizontal_else_vertical){
             ssd1306_DrawRectangle(
-                WALL_CELL_OFFSET_X + BOARD_OFFSET_X + 1 + col * BOARD_CELL_SPACING, 
+                WALL_CELL_OFFSET_X + BOARD_OFFSET_X + 1 + (col - 1) * BOARD_CELL_SPACING, 
                 WALL_CELL_OFFSET_Y + BOARD_OFFSET_Y - 1 + row * BOARD_CELL_SPACING, 
-                WALL_CELL_OFFSET_X + BOARD_OFFSET_X - 1 + (col+2) * BOARD_CELL_SPACING, 
+                WALL_CELL_OFFSET_X + BOARD_OFFSET_X - 1 + (col + 1) * BOARD_CELL_SPACING, 
                 WALL_CELL_OFFSET_Y + BOARD_OFFSET_Y - 1 + row * BOARD_CELL_SPACING + wall_thickness,
                 Black);
         }else{

@@ -5,8 +5,12 @@
 #include "quoridor_config.h"
 
 uint8_t player;
-uint8_t cursor_row_col[2];
+uint8_t cursor_pawn_row_col[2];
+uint8_t cursor_wall_row_col_dir[3];
+
 int8_t row_col_cursor_distances_from_pawn[2];
+
+uint8_t state_play_mode;
 
 void human_init(void)
 {
@@ -16,13 +20,33 @@ void human_init(void)
 void human_turn_init()
 {
     player = get_playing_player();
-    pawn_get_position_as_row_col(cursor_row_col, player);
+    pawn_get_position_as_row_col(cursor_pawn_row_col, player);
+
     row_col_cursor_distances_from_pawn[0] = 0;
     row_col_cursor_distances_from_pawn[1] = 0;
+
+    cursor_wall_row_col_dir[0] = 4;
+    cursor_wall_row_col_dir[1] = 4;
+
+    state_play_mode = STATE_MOVE_PAWN;
 }
 
 uint8_t human_commit_move()
 {
+
+    if (state_play_mode == STATE_MOVE_PAWN)
+    {
+        human_commit_move_pawn();
+    }
+    else if (state_play_mode == STATE_MOVE_WALL_HORIZONTAL)
+    {
+        ;
+    }
+}
+
+uint8_t human_commit_move_pawn()
+{
+
     // get move_index from cursor
     // uint8_t pawn_row_col[2];
     // pawn_get_position_as_row_col(pawn_row_col, player);
@@ -104,7 +128,7 @@ uint8_t human_commit_move()
             move_index = WEST_WEST;
         }
     }
-    
+
     if (move_index == MOVE_INDEX_DUMMY)
     {
         // invalid move.
@@ -120,29 +144,106 @@ uint8_t human_commit_move()
     return 0;
 }
 
-void human_button_press(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle, uint8_t *cursor_position)
+void human_button_press_move_wall_horizontal(uint8_t north, uint8_t east, uint8_t south, uint8_t west)
 {
-
     if (north)
     {
-        cursor_row_col[0] += 1;
+        cursor_wall_row_col_dir[0] += 1;
+    }
+    if (east)
+    {
+        cursor_wall_row_col_dir[1] += 1;
+    }
+    if (south)
+    {
+        cursor_wall_row_col_dir[0] -= 1;
+    }
+    if (west)
+    {
+        cursor_wall_row_col_dir[1] -= 1;
+    }
+}
+
+void human_button_press_move_pawn(uint8_t north, uint8_t east, uint8_t south, uint8_t west)
+{
+    if (north)
+    {
+        cursor_pawn_row_col[0] += 1;
         row_col_cursor_distances_from_pawn[0] += 1;
     }
     if (east)
     {
-        cursor_row_col[1] += 1;
+        cursor_pawn_row_col[1] += 1;
         row_col_cursor_distances_from_pawn[1] += 1;
     }
     if (south)
     {
-        cursor_row_col[0] -= 1;
+        cursor_pawn_row_col[0] -= 1;
         row_col_cursor_distances_from_pawn[0] -= 1;
     }
     if (west)
     {
-        cursor_row_col[1] -= 1;
+        cursor_pawn_row_col[1] -= 1;
         row_col_cursor_distances_from_pawn[1] -= 1;
     }
-    cursor_position[0] = cursor_row_col[0];
-    cursor_position[1] = cursor_row_col[1];
+}
+
+void human_get_cursor_wall(uint8_t *cursor_wall_position)
+{
+    if (state_play_mode != STATE_MOVE_WALL_HORIZONTAL && state_play_mode != STATE_MOVE_WALL_VERTICAL)
+    {
+        cursor_wall_position[0] = CURSOR_NOT_SHOWN;
+        cursor_wall_position[1] = CURSOR_NOT_SHOWN;
+        return;
+    }
+
+    cursor_wall_position[0] = cursor_wall_row_col_dir[0];
+    cursor_wall_position[1] = cursor_wall_row_col_dir[1];
+    if (state_play_mode == STATE_MOVE_WALL_HORIZONTAL)
+    {
+        cursor_wall_position[2] = 1;
+    }
+    else
+    {
+        cursor_wall_position[2] = 0;
+    }
+}
+
+void human_get_cursor_pawn(uint8_t *cursor_position)
+{
+    if (state_play_mode == STATE_MOVE_PAWN)
+    {
+        cursor_position[0] = cursor_pawn_row_col[0];
+        cursor_position[1] = cursor_pawn_row_col[1];
+    }
+    else
+    {
+        cursor_position[0] = CURSOR_NOT_SHOWN;
+        cursor_position[1] = CURSOR_NOT_SHOWN;
+    }
+}
+
+void human_button_press(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
+{
+    if (toggle)
+    {
+        state_play_mode++;
+        if (state_play_mode == STATE_INVALID)
+        {
+            state_play_mode = STATE_MOVE_PAWN;
+        }
+    }
+
+    if (state_play_mode == STATE_MOVE_PAWN)
+    {
+        human_button_press_move_pawn(north, east, south, west);
+    }
+    else if (state_play_mode == STATE_MOVE_WALL_HORIZONTAL)
+    {
+        human_button_press_move_wall_horizontal(north, east, south, west);
+    }
+    else if (state_play_mode == STATE_MOVE_WALL_VERTICAL)
+    {
+        human_button_press_move_wall_horizontal(north, east, south, west);
+    }
 }

@@ -9,11 +9,6 @@ uint8_t distances_to_end[2];
 uint8_t players_positions[2][2];
 uint8_t players_walls[2][30];
 
-// uint8_t human_turn_finished;
-
-// uint8_t computer_turn_finished;
-
-
 uint8_t quoridor_state;
 void human_vs_computer_init()
 {
@@ -22,90 +17,88 @@ void human_vs_computer_init()
     quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
 }
 
-void quoridor_human_vs_computer_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle){
+void quoridor_human_vs_computer_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
+{
 
-    switch(quoridor_state){
-        case(STATE_QUORIDOR_INIT):{
-            human_vs_computer_init();
-            break;
-        }
-        case (STATE_QUORIDOR_HUMAN_TURN_INIT):{
-            quoridor_human_turn_init();
-            quoridor_state = STATE_QUORIDOR_HUMAN_TURN;
-        }
-        case (STATE_QUORIDOR_HUMAN_TURN):{
-            quoridor_human_interaction(north, east, south, west, enter, toggle);
-            // if (quoridor_human_turn_finished()){
-                //  quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_INIT;
-            // }
-            break;
-        }
-        case (STATE_QUORIDOR_COMPUTER_TURN_INIT):{
-           
-            quoridor_state = STATE_QUORIDOR_COMPUTER_TURN;
-            break;
-        }
-        case (STATE_QUORIDOR_COMPUTER_TURN):{
-            quoridor_computer_turn_init();
-            quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
-            
-            //if (quoridor_computer_turn_finished()){
-                // quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
-            // }
-            break;
-            
-        }
-        case (STATE_QUORIDOR_FINISHED):{
-            break;
-        }
-        default:{
-
-        }
+    switch (quoridor_state)
+    {
+    case (STATE_QUORIDOR_INIT):
+    {
+        human_vs_computer_init();
+        break;
     }
+    case (STATE_QUORIDOR_HUMAN_TURN_INIT):
+    {
+        quoridor_human_turn_init();
+        quoridor_state = STATE_QUORIDOR_HUMAN_TURN;
+    }
+    case (STATE_QUORIDOR_HUMAN_TURN):
+    {
+        quoridor_human_interaction(north, east, south, west, enter, toggle);
+        break;
+    }
+    case (STATE_QUORIDOR_COMPUTER_TURN_INIT):
+    {
 
+        quoridor_state = STATE_QUORIDOR_COMPUTER_TURN;
+        break;
+    }
+    case (STATE_QUORIDOR_COMPUTER_TURN):
+    {
+        quoridor_computer_turn_init();
+        quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
+
+        break;
+    }
+    case (STATE_QUORIDOR_FINISHED):
+    {
+        break;
+    }
+    default:
+    {
+    }
+    }
 }
 
 void quoridor_human_interaction(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
 {
 
     uint8_t cursor_position[2];
-    if (enter){
+    uint8_t cursor_wall_position[3];
+
+    if (enter)
+    {
         uint8_t success;
         success = human_commit_move();
-        if (success){
-            // human_init();
-            // human_turn_finished = 1;
+        if (success)
+        {
             quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_INIT;
         }
+    }
+    else
+    {
+        human_button_press(north, east, south, west, enter, toggle);
 
-    }else{
-        human_button_press(north, east, south, west, enter, toggle, cursor_position);
-        // board_toggle_
-        board_set_cursor(cursor_position); 
+        human_get_cursor_wall(cursor_wall_position);
+        board_set_cursor_wall(cursor_wall_position);
+        
+
+        human_get_cursor_pawn(cursor_position);
+        board_set_cursor(cursor_position);
     }
     display_game_state();
 }
 
-// uint8_t quoridor_human_turn_finished(){
-//     return human_turn_finished;
-// }
-
-void quoridor_human_turn_init(){
+void quoridor_human_turn_init()
+{
     human_turn_init();
-    // human_turn_finished = 0;
 }
 
-
-void quoridor_computer_turn_init(){
-    // computer_turn_finished = 0;
+void quoridor_computer_turn_init()
+{
     autoplay_execute_next_move();
-    // computer_turn_finished = 1;
     quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
 }
-
-// uint8_t quoridor_computer_turn_finished(){
-//     return computer_turn_finished;
-// }
 
 void autoplay_game_init()
 {
@@ -114,8 +107,6 @@ void autoplay_game_init()
     autoplay_init();
     display_game_state();
 }
-
-
 
 void autoplay_game_next_move()
 {
