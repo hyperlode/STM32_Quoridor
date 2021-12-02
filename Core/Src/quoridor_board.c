@@ -120,7 +120,7 @@ void board_state_draw(){
                 players[player].walls[wall].row,
                 players[player].walls[wall].col,
                 players[player].walls[wall].horizontal_else_vertical,
-                1);
+                0);
         }
     }
     ssd1306_SetCursor(70, 1);
@@ -267,8 +267,6 @@ void board_draw_wall(uint8_t row, uint8_t col, uint8_t horizontal_else_vertical,
             WALL_CELL_OFFSET_X + BOARD_OFFSET_X + col * BOARD_CELL_SPACING , 
             WALL_CELL_OFFSET_Y + BOARD_OFFSET_Y + ((row ) - 1) * BOARD_CELL_SPACING,
             White);
-
-        
     }
     
     // draw rectangle around the wall for fat walls
@@ -288,7 +286,6 @@ void board_draw_wall(uint8_t row, uint8_t col, uint8_t horizontal_else_vertical,
                 WALL_CELL_OFFSET_X + BOARD_OFFSET_X - 1 + col * BOARD_CELL_SPACING + wall_thickness, 
                 WALL_CELL_OFFSET_Y + BOARD_OFFSET_Y - 1 + ((row - 1) +2) * BOARD_CELL_SPACING,
                 Black);
-            
         }
     }
 }

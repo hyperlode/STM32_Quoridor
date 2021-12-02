@@ -81,7 +81,6 @@ void quoridor_human_interaction(uint8_t north, uint8_t east, uint8_t south, uint
 
         human_get_cursor_wall(cursor_wall_position);
         board_set_cursor_wall(cursor_wall_position);
-        
 
         human_get_cursor_pawn(cursor_position);
         board_set_cursor(cursor_position);

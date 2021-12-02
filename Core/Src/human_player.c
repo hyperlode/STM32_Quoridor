@@ -36,12 +36,33 @@ uint8_t human_commit_move()
 
     if (state_play_mode == STATE_MOVE_PAWN)
     {
-        human_commit_move_pawn();
+        return human_commit_move_pawn();
     }
-    else if (state_play_mode == STATE_MOVE_WALL_HORIZONTAL)
+    else if (state_play_mode == STATE_MOVE_WALL_HORIZONTAL || state_play_mode == STATE_MOVE_WALL_VERTICAL)
     {
-        ;
+        return human_commit_move_wall();
     }
+
+    return 0;
+}
+
+uint8_t human_commit_move_wall(){
+
+    uint8_t wall_position[3];
+    uint8_t move_index= MOVE_INDEX_DUMMY;
+    human_get_cursor_wall(wall_position);
+
+
+    move_index = row_col_dir_to_move_index(wall_position) ;
+    
+    if (get_move_index_valid(move_index))
+    {
+        make_move(move_index);
+        return 1;
+    }
+
+    return 0;
+
 }
 
 uint8_t human_commit_move_pawn()
@@ -116,14 +137,14 @@ uint8_t human_commit_move_pawn()
     }
     else if (delta_col == 2)
     {
-        if (delta_col == 0)
+        if (delta_row == 0)
         {
             move_index = EAST_EAST;
         }
     }
-    else if (delta_row == -2)
+    else if (delta_col == -2)
     {
-        if (delta_col == 0)
+        if (delta_row == 0)
         {
             move_index = WEST_WEST;
         }
@@ -143,6 +164,8 @@ uint8_t human_commit_move_pawn()
 
     return 0;
 }
+
+
 
 void human_button_press_move_wall_horizontal(uint8_t north, uint8_t east, uint8_t south, uint8_t west)
 {

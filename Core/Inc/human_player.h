@@ -11,6 +11,7 @@ _BEGIN_STD_C
 
 uint8_t human_commit_move();
 uint8_t human_commit_move_pawn();
+uint8_t human_commit_move_wall();
 
 
 
