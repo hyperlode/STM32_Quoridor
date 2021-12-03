@@ -104,8 +104,6 @@ uint8_t autoplay_get_best_next_move(uint8_t player)
         }
     }
 
-    // if winning move is in moves: do it! oh no! we don't know it that easily...
-
     // choose a move
     uint8_t rand_index;
 
@@ -127,11 +125,5 @@ uint8_t autoplay_get_best_next_move(uint8_t player)
     }
 
     return equal_delta_moves[rand_index];
-    // execute
-
-    // repeat
-
-    // return move with best path delta
-
-    // return;
+    
 }

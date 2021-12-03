@@ -46,27 +46,33 @@ void game_init(void)
     move_counter = 0;
 }
 
-uint8_t get_winner_index(){
+uint8_t get_winner_index()
+{
     // will return NO_WINNER if nobody won
     return player_winner_index;
 }
 
-uint8_t get_player_won(uint8_t player){
+uint8_t get_player_won(uint8_t player)
+{
     uint8_t row_col[2];
     pawn_get_position_as_row_col(row_col, player);
-    if (player){
+    if (player)
+    {
         return row_col[0] == 0;
-    }else{
+    }
+    else
+    {
         return row_col[0] == 8;
     }
-
 }
 
-uint8_t get_move_index_valid(uint8_t move_index){
+uint8_t get_move_index_valid(uint8_t move_index)
+{
     return move_indeces_valid_for_current_board[move_index];
 }
 
-uint8_t get_walls_placed(uint8_t player){
+uint8_t get_walls_placed(uint8_t player)
+{
     return players[player].walls_placed;
 }
 
@@ -86,7 +92,7 @@ void analyse_possible_moves_walls()
 {
     for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++)
     {
-        if (move_indeces_valid_for_current_board[i])
+        if (get_move_index_valid(i))
         {
             graph_wall_add(i);
             int8_t delta;
@@ -123,16 +129,19 @@ void analyse_possible_moves_pawn(uint8_t player)
             uint8_t player_node = pawn_get_position_as_node_index(player);
             uint8_t pawn_moved_node = graph_get_pawn_move_destination_node(player_node, move_index);
 
-            int8_t delta=0;
+            int8_t delta = 0;
             if (player)
             {
                 // to south (neg delta is better)
-                for (uint8_t winning_node=0;winning_node<9;winning_node++){
-                    if (pawn_moved_node == winning_node){
+                for (uint8_t winning_node = 0; winning_node < 9; winning_node++)
+                {
+                    if (pawn_moved_node == winning_node)
+                    {
                         delta = -1 * DELTA_WINNING_MOVE_MAGNITUDE;
                     }
                 }
-                if (delta !=  -1 * DELTA_WINNING_MOVE_MAGNITUDE){
+                if (delta != -1 * DELTA_WINNING_MOVE_MAGNITUDE)
+                {
                     delta = graph_delta_of_distances(
                         pawn_get_position_as_node_index(0),
                         pawn_moved_node);
@@ -140,12 +149,15 @@ void analyse_possible_moves_pawn(uint8_t player)
             }
             else
             {
-                for (uint8_t winning_node=72;winning_node<81;winning_node++){
-                    if (pawn_moved_node == winning_node){
+                for (uint8_t winning_node = 72; winning_node < 81; winning_node++)
+                {
+                    if (pawn_moved_node == winning_node)
+                    {
                         delta = DELTA_WINNING_MOVE_MAGNITUDE;
                     }
                 }
-                if (delta != DELTA_WINNING_MOVE_MAGNITUDE){
+                if (delta != DELTA_WINNING_MOVE_MAGNITUDE)
+                {
                     delta = graph_delta_of_distances(
                         pawn_moved_node,
                         pawn_get_position_as_node_index(1));
@@ -176,8 +188,28 @@ void next_move_loaded_game(void)
     make_move(move_index);
 };
 
+uint8_t make_move_if_valid(uint8_t move_index)
+{
+    if (!get_move_index_valid(move_index))
+    {
+        return 0;
+    }
+    if (move_index >= MOVE_INDEX_FIRST_WALL)
+    {
+        if (players[get_playing_player()].walls_placed >= 10)
+        {
+            return 0;
+        }
+    }
+    make_move(move_index);
+    return 1;
+}
+
 void make_move(uint8_t move_index)
 {
+    // use make_move_if_valid() if there is user input and need for feedback
+    // do a validy check before calling this function.
+    // it will ASSERT error at invalid moves.
 
     // check if move is in the possible moves list
     if (!move_indeces_valid_for_current_board[move_index])
@@ -403,12 +435,14 @@ uint8_t check_move_possible_pawn_L_jump(player, start_node, direction_1, directi
     return 1;
 }
 
-void make_move_wall(uint8_t player, uint8_t move_index)
+uint8_t make_move_wall(uint8_t player, uint8_t move_index)
 {
     uint8_t wall_row_col_dir[3];
 
-    if (players[player].walls_placed >= 10){
-        raise_error(ERROR_NO_MORE_WALLS_LEFT);
+    if (players[player].walls_placed >= 10)
+    {
+        //raise_error(ERROR_NO_MORE_WALLS_LEFT);
+        return 0;
     }
 
     move_index_to_row_col_dir(move_index, wall_row_col_dir);
@@ -483,6 +517,7 @@ void make_move_wall(uint8_t player, uint8_t move_index)
     }
 
     players[player].walls_placed++;
+    return 1;
 };
 
 uint8_t row_col_dir_to_move_index(uint8_t *row_col_dir)
@@ -551,13 +586,14 @@ void make_move_pawn(uint8_t player, uint8_t move_index)
 
     players[player].pawn.row += deltas_row_col[0];
     players[player].pawn.col += deltas_row_col[1];
-    if (get_player_won(player)){
+    if (get_player_won(player))
+    {
         player_winner_index = player;
-    }else{
+    }
+    else
+    {
         player_winner_index = NO_WINNER;
     }
-
-
 };
 
 void pawn_move_index_to_row_col_deltas(uint8_t move_index, int8_t *deltas_row_col)
