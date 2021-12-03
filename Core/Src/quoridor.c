@@ -14,44 +14,71 @@ void human_vs_computer_init()
 {
     game_init();
     display_game_state();
-    quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
 }
 
 void quoridor_human_vs_computer_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
 {
-
     switch (quoridor_state)
     {
     case (STATE_QUORIDOR_INIT):
     {
         human_vs_computer_init();
+        quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
         break;
     }
     case (STATE_QUORIDOR_HUMAN_TURN_INIT):
     {
         quoridor_human_turn_init();
         quoridor_state = STATE_QUORIDOR_HUMAN_TURN;
+        break;
+    }
+    case (STATE_QUORIDOR_HUMAN_TURN_END):
+    {
+        if (get_winner_index() != NO_WINNER)
+        {
+            quoridor_state = STATE_QUORIDOR_FINISHED;
+        }
+        else
+        {
+            quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_INIT;
+        }
+
+        break;
     }
     case (STATE_QUORIDOR_HUMAN_TURN):
     {
         quoridor_human_interaction(north, east, south, west, enter, toggle);
+
         break;
     }
     case (STATE_QUORIDOR_COMPUTER_TURN_INIT):
     {
 
         quoridor_state = STATE_QUORIDOR_COMPUTER_TURN;
+       
         break;
     }
     case (STATE_QUORIDOR_COMPUTER_TURN):
     {
         quoridor_computer_turn_init();
-        quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
+        if (get_winner_index() != NO_WINNER)
+        {
+            quoridor_state = STATE_QUORIDOR_FINISHED;
+        }else{
+            quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
+
+        }
+        display_game_state();
 
         break;
     }
     case (STATE_QUORIDOR_FINISHED):
     {
+        if (enter)
+        {
+            quoridor_state = STATE_QUORIDOR_INIT;
+        }
+
         break;
     }
     default:
@@ -72,7 +99,7 @@ void quoridor_human_interaction(uint8_t north, uint8_t east, uint8_t south, uint
         success = human_commit_move();
         if (success)
         {
-            quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_INIT;
+            quoridor_state = STATE_QUORIDOR_HUMAN_TURN_END;
         }
     }
     else
@@ -96,7 +123,6 @@ void quoridor_human_turn_init()
 void quoridor_computer_turn_init()
 {
     autoplay_execute_next_move();
-    quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
 }
 
 void autoplay_game_init()

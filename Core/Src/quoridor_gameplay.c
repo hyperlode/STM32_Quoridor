@@ -13,7 +13,7 @@ uint8_t moves_indeces[MAX_MOVES_COUNT];
 
 int8_t moves_delta[140];                           // store all deltas of moves. Combine with the "move_indeces_valid_for_current_board" to only check the relevant indeces.
 uint8_t move_indeces_valid_for_current_board[140]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
-
+uint8_t player_winner_index;
 
 void game_init(void)
 {
@@ -42,8 +42,24 @@ void game_init(void)
     graph_init();
 
     analyse_possible_moves(get_playing_player()); // player is 0 at init.
-
+    player_winner_index = NO_WINNER;
     move_counter = 0;
+}
+
+uint8_t get_winner_index(){
+    // will return NO_WINNER if nobody won
+    return player_winner_index;
+}
+
+uint8_t get_player_won(uint8_t player){
+    uint8_t row_col[2];
+    pawn_get_position_as_row_col(row_col, player);
+    if (player){
+        return row_col[0] == 0;
+    }else{
+        return row_col[0] == 8;
+    }
+
 }
 
 uint8_t get_move_index_valid(uint8_t move_index){
@@ -535,6 +551,13 @@ void make_move_pawn(uint8_t player, uint8_t move_index)
 
     players[player].pawn.row += deltas_row_col[0];
     players[player].pawn.col += deltas_row_col[1];
+    if (get_player_won(player)){
+        player_winner_index = player;
+    }else{
+        player_winner_index = NO_WINNER;
+    }
+
+
 };
 
 void pawn_move_index_to_row_col_deltas(uint8_t move_index, int8_t *deltas_row_col)
