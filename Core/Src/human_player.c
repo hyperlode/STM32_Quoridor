@@ -11,7 +11,7 @@ uint8_t cursor_wall_row_col_dir[3];
 int8_t row_col_cursor_distances_from_pawn[2];
 
 uint8_t state_play_mode;
-uint8_t ingame_menu_active;
+
 
 void human_init(void)
 {
@@ -20,7 +20,6 @@ void human_init(void)
 
 void human_turn_init()
 {
-    ingame_menu_active = 0;
     player = get_playing_player();
     pawn_get_position_as_row_col(cursor_pawn_row_col, player);
 
@@ -247,7 +246,7 @@ void human_get_cursor_pawn(uint8_t *cursor_position)
 
 void human_button_press_ingame_menu(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
 {
-    ingame_menu_active = 1;
+    
 }
 uint8_t human_is_in_ingame_menu()
 {
