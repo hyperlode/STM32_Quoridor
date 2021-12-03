@@ -136,14 +136,16 @@ int main(void)
 #ifdef PLAYER_2_HUMAN
     human_vs_human_init();
 #else
-    human_vs_computer_init();
-    quoridor_human_turn_init();
+    
 #endif
 #elif defined QUORIDOR_AUTOPLAY
     autoplay_game_init();
 #else
     replay_game_init(moves_lode_notation);
 #endif
+
+
+    quoridor_init();
     while (1)
     {
 
@@ -160,7 +162,7 @@ int main(void)
         // if (button_get_edge_up_single_readout(BUTTON_NORTH)){
         //     HAL_GPIO_TogglePin(led_orange_GPIO_Port,led_orange_Pin);
         // }
-        quoridor_human_vs_computer_manager(
+        program_state_manager(
             button_get_edge_up_single_readout(BUTTON_NORTH),
             button_get_edge_up_single_readout(BUTTON_EAST),
             button_get_edge_up_single_readout(BUTTON_SOUTH),

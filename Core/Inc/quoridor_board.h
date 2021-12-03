@@ -7,7 +7,7 @@ _BEGIN_STD_C
 
 void board_set_cursor(uint8_t* row_col);
 
-void oard_draw_cursor_pawn();
+void board_draw_cursor_pawn();
 void oard_draw_cursor_wall();
 
 void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* player_1_walls, uint8_t* player_2_walls, uint8_t* distances_to_win, uint8_t move_counter_a);

@@ -4,9 +4,6 @@
 #include "quoridor_config.h"
 #include "quoridor_board.h"
   
-void oled_init(){
-    ssd1306_Init();
-}
 
 #define BOARD_CELL_SPACING 7
 #define BOARD_OFFSET_X 7
@@ -36,6 +33,48 @@ static cursor_pawn_row = CURSOR_NOT_SHOWN;
 static cursor_wall_row_col_dir[3];
 
 
+void oled_init(){
+    ssd1306_Init();
+}
+
+void menu_display_ingame(uint8_t active_item){
+
+        // max 
+    ssd1306_Fill(White);    
+    ssd1306_SetCursor(20, 13);
+    ssd1306_WriteString("Give up", Font_7x10, Black);
+  
+    ssd1306_SetCursor(20, 27);
+    ssd1306_WriteString("(Machine Hint)", Font_7x10, Black);
+  
+    ssd1306_SetCursor(20, 41);
+    ssd1306_WriteString("(todo)", Font_7x10, Black);
+    
+    board_draw_pawn(active_item * 2 + 2, 0 , 1);
+
+    ssd1306_UpdateScreen();
+
+}
+
+void menu_display(uint8_t active_item){
+    // max 
+    ssd1306_Fill(White);    
+    ssd1306_SetCursor(20, 13);
+    ssd1306_WriteString("Human battle", Font_7x10, Black);
+  
+    ssd1306_SetCursor(20, 27);
+    ssd1306_WriteString("Human - Machine", Font_7x10, Black);
+  
+    ssd1306_SetCursor(20, 41);
+    ssd1306_WriteString("Machine battle", Font_7x10, Black);
+    
+    board_draw_pawn(active_item * 2 + 2, 0 , 1);
+
+    ssd1306_UpdateScreen();
+
+    
+}
+
 void board_set_cursor_wall(uint8_t* row_col_dir){
     
     cursor_wall_row_col_dir[0] = row_col_dir[0];
@@ -56,7 +95,7 @@ void board_draw_cursor_wall(){
     board_draw_wall( cursor_wall_row_col_dir[0], cursor_wall_row_col_dir[1], cursor_wall_row_col_dir[2], 1 );
 }
 
-void oard_draw_cursor_pawn(){
+void board_draw_cursor_pawn(){
 
     if (cursor_pawn_row == CURSOR_NOT_SHOWN || cursor_pawn_col == CURSOR_NOT_SHOWN){
         return;
@@ -147,7 +186,7 @@ void board_state_draw(){
     ssd1306_SetCursor(70, 48);
     ssd1306_WriteString(move_counter_text, Font_7x10, Black);
 
-    oard_draw_cursor_pawn();
+    board_draw_cursor_pawn();
     board_draw_cursor_wall();
      
     board_draw_outline();  // save for last to overwrite wall placement white dots.

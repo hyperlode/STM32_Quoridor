@@ -11,6 +11,7 @@ uint8_t cursor_wall_row_col_dir[3];
 int8_t row_col_cursor_distances_from_pawn[2];
 
 uint8_t state_play_mode;
+uint8_t ingame_menu_active;
 
 void human_init(void)
 {
@@ -19,6 +20,7 @@ void human_init(void)
 
 void human_turn_init()
 {
+    ingame_menu_active = 0;
     player = get_playing_player();
     pawn_get_position_as_row_col(cursor_pawn_row_col, player);
 
@@ -46,15 +48,15 @@ uint8_t human_commit_move()
     return 0;
 }
 
-uint8_t human_commit_move_wall(){
+uint8_t human_commit_move_wall()
+{
 
     uint8_t wall_position[3];
-    uint8_t move_index= MOVE_INDEX_DUMMY;
+    uint8_t move_index = MOVE_INDEX_DUMMY;
     human_get_cursor_wall(wall_position);
 
+    move_index = row_col_dir_to_move_index(wall_position);
 
-    move_index = row_col_dir_to_move_index(wall_position) ;
-    
     if (get_move_index_valid(move_index))
     {
         make_move(move_index);
@@ -62,7 +64,6 @@ uint8_t human_commit_move_wall(){
     }
 
     return 0;
-
 }
 
 uint8_t human_commit_move_pawn()
@@ -165,8 +166,6 @@ uint8_t human_commit_move_pawn()
     return 0;
 }
 
-
-
 void human_button_press_move_wall_horizontal(uint8_t north, uint8_t east, uint8_t south, uint8_t west)
 {
     if (north)
@@ -246,6 +245,18 @@ void human_get_cursor_pawn(uint8_t *cursor_position)
     }
 }
 
+void human_button_press_ingame_menu(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
+{
+    ingame_menu_active = 1;
+}
+uint8_t human_is_in_ingame_menu()
+{
+    return human_get_state() == STATE_INGAME_MENU;
+}
+uint8_t human_get_state()
+{
+    return state_play_mode;
+}
 void human_button_press(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
 {
     if (toggle)
@@ -257,16 +268,32 @@ void human_button_press(uint8_t north, uint8_t east, uint8_t south, uint8_t west
         }
     }
 
-    if (state_play_mode == STATE_MOVE_PAWN)
+    switch (state_play_mode)
+    {
+
+    case STATE_MOVE_PAWN:
     {
         human_button_press_move_pawn(north, east, south, west);
+        break;
     }
-    else if (state_play_mode == STATE_MOVE_WALL_HORIZONTAL)
+    case STATE_MOVE_WALL_HORIZONTAL:
     {
         human_button_press_move_wall_horizontal(north, east, south, west);
+        break;
     }
-    else if (state_play_mode == STATE_MOVE_WALL_VERTICAL)
+    case STATE_MOVE_WALL_VERTICAL:
     {
         human_button_press_move_wall_horizontal(north, east, south, west);
+        break;
+    }
+    case STATE_INGAME_MENU:
+    {
+        human_button_press_ingame_menu(north, east, south, west, enter, toggle);
+        break;
+    }
+    default:
+    {
+        break;
+    }
     }
 }
