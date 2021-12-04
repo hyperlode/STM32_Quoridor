@@ -22,6 +22,7 @@ void make_move_pawn(uint8_t player, uint8_t move_index);
 uint8_t make_move_if_valid(uint8_t move_index);
 void make_move(uint8_t move_index);
 uint8_t make_move_wall(uint8_t player, uint8_t move_index);
+uint8_t get_best_pawn_move();
 
 void move_index_to_row_col_dir(uint8_t move_index, uint8_t* row_col_dir);
 void pawn_move_index_to_row_col_deltas(uint8_t move_index, int8_t* deltas_row_col);

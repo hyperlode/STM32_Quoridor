@@ -127,24 +127,6 @@ int main(void)
     //char moves_lode_notation [MOVES_STRING_LENGTH] = "h1,N,S,N,S,N,S,N,SS,a2,h3";
     //char moves_lode_notation [MOVES_STRING_LENGTH] = "2b,d2,N,S,N,S,N,S,N,SS,a2,h3";
 
-// #define QUORIDOR_AUTOPLAY
-#define PLAYER_1_HUMAN
-
-// #define PLAYER_2_HUMAN
-
-#ifdef PLAYER_1_HUMAN
-#ifdef PLAYER_2_HUMAN
-    human_vs_human_init();
-#else
-    
-#endif
-#elif defined QUORIDOR_AUTOPLAY
-    autoplay_game_init();
-#else
-    replay_game_init(moves_lode_notation);
-#endif
-
-
     quoridor_init();
     while (1)
     {
@@ -157,39 +139,43 @@ int main(void)
         button_set_state(BUTTON_TOGGLE, HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15));
         buttons_refresh();
 
-#ifdef PLAYER_1_HUMAN
+        uint8_t edges_up[6];
 
-        // if (button_get_edge_up_single_readout(BUTTON_NORTH)){
-        //     HAL_GPIO_TogglePin(led_orange_GPIO_Port,led_orange_Pin);
-        // }
-        program_state_manager(
-            button_get_edge_up_single_readout(BUTTON_NORTH),
-            button_get_edge_up_single_readout(BUTTON_EAST),
-            button_get_edge_up_single_readout(BUTTON_SOUTH),
-            button_get_edge_up_single_readout(BUTTON_WEST),
-            button_get_edge_up_single_readout(BUTTON_ENTER),
-            button_get_edge_up_single_readout(BUTTON_TOGGLE));
+        edges_up[0] = button_get_edge_up_single_readout(BUTTON_NORTH);
+        edges_up[1] = button_get_edge_up_single_readout(BUTTON_EAST);
+        edges_up[2] = button_get_edge_up_single_readout(BUTTON_SOUTH);
+        edges_up[3] = button_get_edge_up_single_readout(BUTTON_WEST);
+        edges_up[4] = button_get_edge_up_single_readout(BUTTON_ENTER);
+        edges_up[5] = button_get_edge_up_single_readout(BUTTON_TOGGLE);
 
-#else
-
-        if (button_get_edge_up_single_readout(BUTTON_ENTER) || button_get_state_debounced(BUTTON_TOGGLE))
-        {
-
-            srand(HAL_GetTick());
-            HAL_GPIO_TogglePin(led_orange_GPIO_Port, led_orange_Pin);
-            if (get_move_counter() >= 12)
-            {
-
-                get_move_counter();
-            }
-
-#ifdef QUORIDOR_AUTOPLAY
-            autoplay_game_next_move();
-#else
-            replay_game_next_move();
-#endif
+        // toggle light at each button press to relief myself of the stress if it's a software problem or a fucking bad button problem
+        if (
+            edges_up[0] ||
+            edges_up[1] ||
+            edges_up[2] ||
+            edges_up[3] ||
+            edges_up[4] ||
+            edges_up[5]
+        ){
+            HAL_GPIO_TogglePin(led_orange_GPIO_Port,led_orange_Pin);
         }
-#endif
+    
+        program_state_manager(
+            edges_up[0],
+            edges_up[1],
+            edges_up[2],
+            edges_up[3],
+            edges_up[4],
+            edges_up[5]
+        );
+
+// #ifdef QUORIDOR_AUTOPLAY
+//             autoplay_game_next_move();
+// #else
+//             replay_game_next_move();
+// #endif
+//         }
+// #endif
         // button_pressed_edge_memory = button_pressed;
 
         /* USER CODE END WHILE */

@@ -143,6 +143,11 @@ uint8_t human_commit_move_pawn()
             move_index = WEST_WEST;
         }
     }
+    else if (delta_col == 0 && delta_row == 0){
+        // auto pawn move if available.
+        move_index = get_best_pawn_move();
+        
+    }
 
     if (move_index == MOVE_INDEX_DUMMY)
     {

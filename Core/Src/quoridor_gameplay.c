@@ -64,6 +64,7 @@ uint8_t get_player_won(uint8_t player)
     {
         return row_col[0] == 8;
     }
+    return 0;
 }
 
 uint8_t get_move_index_valid(uint8_t move_index)
@@ -78,8 +79,49 @@ uint8_t get_walls_placed(uint8_t player)
 
 int8_t get_delta_of_move_index(uint8_t move_index)
 {
-
     return moves_delta[move_index];
+}
+
+int8_t get_delta_of_move_index_normalized(uint8_t move_index)
+{
+    // for each player equal: higher delta = better.  (positive delta = winning, negative=losing)
+    uint8_t delta_to_absolute_value;
+    if (get_playing_player())
+    {
+        delta_to_absolute_value = -1;
+    }
+    else
+    {
+        delta_to_absolute_value = 1;
+    }
+
+    return moves_delta[move_index] * delta_to_absolute_value ;
+}
+
+uint8_t get_best_pawn_move(){
+    uint8_t best_move_index; // there will always be a valid one in the end.
+    int8_t best_move_index_delta=-127;
+    uint8_t equal_deltas_count=0;
+
+    for (uint8_t move_index=0;move_index<MOVE_INDEX_FIRST_WALL;move_index++){
+        if (get_move_index_valid(move_index)){
+            int8_t delta = get_delta_of_move_index_normalized(move_index);
+            if (delta == best_move_index_delta){
+                equal_deltas_count++;
+            }else if (delta > best_move_index_delta){
+                equal_deltas_count=0;
+                best_move_index_delta = delta;
+                best_move_index = move_index;
+            }
+        }
+    }
+
+    if (equal_deltas_count!=0){
+        return MOVE_INDEX_DUMMY;
+    }else{
+        return best_move_index;
+    }
+    
 }
 
 void analyse_possible_moves(uint8_t player)
