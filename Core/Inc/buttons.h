@@ -4,7 +4,7 @@ _BEGIN_STD_C
 #include <_ansi.h>
 
 
-#define BUTTON_DEBOUNCE_MILLIS 50
+#define BUTTON_DEBOUNCE_MILLIS 20
 void button_set_state(uint8_t button, uint8_t state);
 
 void byte_set_bit(uint8_t *the_byte, uint8_t mask, uint8_t value);

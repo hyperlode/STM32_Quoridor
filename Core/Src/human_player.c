@@ -13,11 +13,6 @@ int8_t row_col_cursor_distances_from_pawn[2];
 uint8_t state_play_mode;
 
 
-void human_init(void)
-{
-    human_turn_init();
-}
-
 void human_turn_init()
 {
     player = get_playing_player();

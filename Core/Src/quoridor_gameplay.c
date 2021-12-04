@@ -41,9 +41,10 @@ void game_init(void)
     }
     graph_init();
 
+    move_counter = 0;
+    
     analyse_possible_moves(get_playing_player()); // player is 0 at init.
     player_winner_index = NO_WINNER;
-    move_counter = 0;
 }
 
 uint8_t get_winner_index()
@@ -94,7 +95,6 @@ int8_t get_delta_of_move_index_normalized(uint8_t move_index)
     {
         delta_to_absolute_value = 1;
     }
-
     return moves_delta[move_index] * delta_to_absolute_value ;
 }
 

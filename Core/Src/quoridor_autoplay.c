@@ -3,10 +3,6 @@
 #include "quoridor_gameplay.h"
 #include "quoridor_graph.h"
 
-/* all moves have an index
-    
-
-*/
 uint8_t end_of_game;
 
 uint8_t autoplay_init(){
@@ -33,19 +29,10 @@ uint8_t autoplay_get_best_next_move(uint8_t player)
 {
     // from board state, get distances for all possible moves.
 
-    // best_delta: for the 0 plyaer (=toNorth player) as "positive" as possible , for 1 player (to south), delta more negative is better
+    // deltas are normalized for the current player. Meaning: higher delta is better. positive delta = winning.
+
     int8_t best_delta;
-    int8_t delta_to_absolute_value;
-
-    if (player)
-    {
-        delta_to_absolute_value = -1;
-    }
-    else
-    {
-        delta_to_absolute_value = 1;
-    }
-
+   
     best_delta = -127; // worst as init
 
     // draws
@@ -54,8 +41,8 @@ uint8_t autoplay_get_best_next_move(uint8_t player)
     uint8_t equal_delta_moves_count = 0;
     uint8_t number_of_pawn_moves = 0;
     uint8_t moves_to_investigate_count;
-    // get best moves
 
+    // get best moves
     if (get_walls_placed(player) >= 10)
     {
         moves_to_investigate_count = MOVE_INDEX_FIRST_WALL;
@@ -68,17 +55,17 @@ uint8_t autoplay_get_best_next_move(uint8_t player)
     for (uint8_t move_index = 0; move_index < moves_to_investigate_count; move_index++)
     {
         int8_t delta;
-        delta = get_delta_of_move_index(move_index);
+        delta = get_delta_of_move_index_normalized(move_index);
 
-        if (delta == (DELTA_WINNING_MOVE_MAGNITUDE * delta_to_absolute_value)){
+        if (delta == (DELTA_WINNING_MOVE_MAGNITUDE)){
             end_of_game = 1;
         }
 
         if (delta != FAKE_DELTA_FOR_INVALID_MOVE)
         {
-            if (delta * delta_to_absolute_value > best_delta)
+            if (delta> best_delta)
             {
-                best_delta = delta * delta_to_absolute_value;
+                best_delta = delta;
                 equal_delta_moves_count = 0;
                 equal_delta_moves[equal_delta_moves_count] = move_index;
                 equal_delta_moves_count++;
@@ -92,7 +79,7 @@ uint8_t autoplay_get_best_next_move(uint8_t player)
                     number_of_pawn_moves = 0;
                 }
             }
-            else if (delta * delta_to_absolute_value == best_delta)
+            else if (delta == best_delta)
             {
                 equal_delta_moves[equal_delta_moves_count] = move_index;
                 equal_delta_moves_count++;
@@ -125,5 +112,4 @@ uint8_t autoplay_get_best_next_move(uint8_t player)
     }
 
     return equal_delta_moves[rand_index];
-    
 }
