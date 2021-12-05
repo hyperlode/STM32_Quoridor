@@ -5,6 +5,7 @@
 #include "quoridor_gameplay.h"
 #include "quoridor_graph.h"
 #include "quoridor_notation.h"
+#include "quoridor_games_database.h"
 
 static uint8_t move_counter;
 static Player players[2];
@@ -42,7 +43,7 @@ void game_init(void)
     graph_init();
 
     move_counter = 0;
-    
+    opening_initiate_next_move_handler();
     analyse_possible_moves(get_playing_player()); // player is 0 at init.
     player_winner_index = NO_WINNER;
 }
@@ -95,33 +96,41 @@ int8_t get_delta_of_move_index_normalized(uint8_t move_index)
     {
         delta_to_absolute_value = 1;
     }
-    return moves_delta[move_index] * delta_to_absolute_value ;
+    return moves_delta[move_index] * delta_to_absolute_value;
 }
 
-uint8_t get_best_pawn_move(){
+uint8_t get_best_pawn_move()
+{
     uint8_t best_move_index; // there will always be a valid one in the end.
-    int8_t best_move_index_delta=-127;
-    uint8_t equal_deltas_count=0;
+    int8_t best_move_index_delta = -127;
+    uint8_t equal_deltas_count = 0;
 
-    for (uint8_t move_index=0;move_index<MOVE_INDEX_FIRST_WALL;move_index++){
-        if (get_move_index_valid(move_index)){
+    for (uint8_t move_index = 0; move_index < MOVE_INDEX_FIRST_WALL; move_index++)
+    {
+        if (get_move_index_valid(move_index))
+        {
             int8_t delta = get_delta_of_move_index_normalized(move_index);
-            if (delta == best_move_index_delta){
+            if (delta == best_move_index_delta)
+            {
                 equal_deltas_count++;
-            }else if (delta > best_move_index_delta){
-                equal_deltas_count=0;
+            }
+            else if (delta > best_move_index_delta)
+            {
+                equal_deltas_count = 0;
                 best_move_index_delta = delta;
                 best_move_index = move_index;
             }
         }
     }
 
-    if (equal_deltas_count!=0){
+    if (equal_deltas_count != 0)
+    {
         return MOVE_INDEX_DUMMY;
-    }else{
+    }
+    else
+    {
         return best_move_index;
     }
-    
 }
 
 void analyse_possible_moves(uint8_t player)
@@ -278,8 +287,8 @@ void make_move(uint8_t move_index)
     move_counter++;
 
     // prepare for next move
+    opening_update_game_move(move_index, move_counter);
     analyse_possible_moves(get_playing_player());
-
     return;
 }
 

@@ -131,6 +131,7 @@ int main(void)
     while (1)
     {
 
+        // update_game_move();
         button_set_state(BUTTON_EAST, HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_14));
         button_set_state(BUTTON_ENTER, HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_11));
         button_set_state(BUTTON_NORTH, HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_12));

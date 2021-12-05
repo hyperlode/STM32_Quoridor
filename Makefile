@@ -80,6 +80,7 @@ Core/Src/quoridor_graph.c \
 Core/Src/quoridor_error.c \
 Core/Src/quoridor_notation.c \
 Core/Src/quoridor_tests.c \
+Core/Src/quoridor_games_database.c \
 Core/Src/buttons.c \
 Core/Src/human_player.c \
 Drivers/ssd1306/ssd1306_fonts.c \

@@ -19,6 +19,8 @@ uint8_t menu_ingame_display_update;
 uint8_t menu_ingame_active_memory;
 
 uint8_t program_state;
+
+uint8_t auto_play_pause = 0;
 void quoridor_init()
 {
     quoridor_state = STATE_QUORIDOR_INIT;
@@ -152,13 +154,13 @@ void quoridor_menu_gameplay(uint8_t north, uint8_t east, uint8_t south, uint8_t 
     {
         switch (menu_active_item)
         {
-        case 1:
+        case 2:
         {
             quoridor_state = STATE_QUORIDOR_INIT;
             program_state = STATE_PROGRAM_HUMAN_VS_COMPUTER;
             break;
         }
-        case 2:
+        case 1:
         {
             quoridor_state = STATE_QUORIDOR_INIT;
             quoridor_state = STATE_QUORIDOR_INIT;
@@ -255,17 +257,28 @@ void quoridor_computer_vs_computer_manager(uint8_t north, uint8_t east, uint8_t 
     }
     case (STATE_QUORIDOR_COMPUTER_TURN):
     {
-        autoplay_execute_next_move();
-        if (get_winner_index() != NO_WINNER)
-        {
-            quoridor_state = STATE_QUORIDOR_FINISHED;
-        }
-        else
-        {
-            quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_INIT;
-        }
-        display_game_state();
 
+        if (west){
+            if (auto_play_pause){
+                auto_play_pause = 0;
+            }else{
+                auto_play_pause = 1;
+            }
+        }
+        if (!auto_play_pause){
+                
+            autoplay_execute_next_move();
+            if (get_winner_index() != NO_WINNER)
+            {
+                quoridor_state = STATE_QUORIDOR_FINISHED;
+            }
+            else
+            {
+                quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_INIT;
+            }
+            board_set_move_type(autoplay_get_move_type());
+            display_game_state();
+        }
         break;
     }
     case (STATE_QUORIDOR_FINISHED):
@@ -328,6 +341,7 @@ void quoridor_human_vs_computer_manager(uint8_t north, uint8_t east, uint8_t sou
     }
     case (STATE_QUORIDOR_COMPUTER_TURN):
     {
+    
         autoplay_execute_next_move();
         if (get_winner_index() != NO_WINNER)
         {
@@ -337,8 +351,9 @@ void quoridor_human_vs_computer_manager(uint8_t north, uint8_t east, uint8_t sou
         {
             quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
         }
+        board_set_move_type(autoplay_get_move_type());
         display_game_state();
-
+       
         break;
     }
     case (STATE_QUORIDOR_FINISHED):

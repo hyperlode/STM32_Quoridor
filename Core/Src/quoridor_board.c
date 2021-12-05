@@ -31,6 +31,7 @@ static cursor_pawn_col = CURSOR_NOT_SHOWN;
 static cursor_pawn_row = CURSOR_NOT_SHOWN;
 
 static cursor_wall_row_col_dir[3];
+static uint8_t move_type;
 
 
 void oled_init(){
@@ -40,17 +41,22 @@ void oled_init(){
 void menu_display_ingame(uint8_t active_item){
 
         // max 
+    
     ssd1306_Fill(White);    
-    ssd1306_SetCursor(20, 13);
+    ssd1306_SetCursor(5, 4);
+    ssd1306_WriteString("In Game Menu", Font_7x10, Black);
+
+
+    ssd1306_SetCursor(15, 20);
     ssd1306_WriteString("Give up", Font_7x10, Black);
   
-    ssd1306_SetCursor(20, 27);
+    ssd1306_SetCursor(15, 34);
     ssd1306_WriteString("(Machine Hint)", Font_7x10, Black);
   
-    ssd1306_SetCursor(20, 41);
-    ssd1306_WriteString("(todo)", Font_7x10, Black);
+    ssd1306_SetCursor(15, 48);
+    ssd1306_WriteString("Back with Toggle ", Font_7x10, Black);
     
-    board_draw_pawn(active_item * 2 + 2, 0 , 1);
+    board_draw_pawn(active_item * 2 + 1, 0 , 1);
 
     ssd1306_UpdateScreen();
 
@@ -59,16 +65,20 @@ void menu_display_ingame(uint8_t active_item){
 void menu_display(uint8_t active_item){
     // max 
     ssd1306_Fill(White);    
-    ssd1306_SetCursor(20, 13);
+    ssd1306_SetCursor(5, 4);
+    ssd1306_WriteString("Pick your fight", Font_7x10, Black);
+
+    
+    ssd1306_SetCursor(15, 20);
+    ssd1306_WriteString("Human vs Machine", Font_7x10, Black);
+  
+    ssd1306_SetCursor(15, 34);
     ssd1306_WriteString("Human battle", Font_7x10, Black);
   
-    ssd1306_SetCursor(20, 27);
-    ssd1306_WriteString("Human - Machine", Font_7x10, Black);
-  
-    ssd1306_SetCursor(20, 41);
+    ssd1306_SetCursor(15, 48);
     ssd1306_WriteString("Machine battle", Font_7x10, Black);
     
-    board_draw_pawn(active_item * 2 + 2, 0 , 1);
+    board_draw_pawn(active_item * 2 + 1, 0 , 1);
 
     ssd1306_UpdateScreen();
 
@@ -82,9 +92,38 @@ void board_set_cursor_wall(uint8_t* row_col_dir){
     cursor_wall_row_col_dir[2] = row_col_dir[2];
 }
 
+void board_set_move_type(uint8_t given_move_type){
+    
+    move_type = given_move_type;
+}
+
+
 void board_set_cursor(uint8_t* row_col){
     cursor_pawn_row = row_col[0];  
     cursor_pawn_col = row_col[1];
+}
+
+void board_draw_move_type(){
+    switch(move_type){
+        case AUTOPLAY_MOVE_TYPE_OPENING_DATABASE:
+        {
+            ssd1306_SetCursor(100, 10);
+            ssd1306_WriteString("ODB", Font_7x10, Black);
+            break;
+        }
+        case AUTOPLAY_MOVE_TYPE_CALCULATED_LEVEL_1:
+        {
+            ssd1306_SetCursor(100, 10);
+            ssd1306_WriteString("L1", Font_7x10, Black);
+            break;
+        }
+        default:
+        {
+           ssd1306_SetCursor(100, 10);
+            ssd1306_WriteString("C", Font_7x10, Black);
+            break;
+        }
+    }
 }
 
 void board_draw_cursor_wall(){
@@ -188,6 +227,7 @@ void board_state_draw(){
 
     board_draw_cursor_pawn();
     board_draw_cursor_wall();
+    board_draw_move_type();
      
     board_draw_outline();  // save for last to overwrite wall placement white dots.
 

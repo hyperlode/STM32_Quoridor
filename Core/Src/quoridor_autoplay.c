@@ -5,13 +5,13 @@
 
 uint8_t end_of_game;
 
+uint8_t autoplay_move_type;
+
 uint8_t autoplay_init(){
     end_of_game = 0;
 }
 
-uint8_t get_game_done(){
-    return end_of_game;
-}
+
 
 uint8_t autoplay_execute_next_move()
 {
@@ -20,9 +20,24 @@ uint8_t autoplay_execute_next_move()
     }
 
     uint8_t best_move_index;
-    best_move_index = autoplay_get_best_next_move(get_playing_player());
+    best_move_index = auto_play_get_move_from_opening_database();
+    autoplay_move_type = AUTOPLAY_MOVE_TYPE_OPENING_DATABASE;
+
+    if (best_move_index == MOVE_INDEX_DUMMY){
+        best_move_index = autoplay_get_best_next_move(get_playing_player());
+        autoplay_move_type = AUTOPLAY_MOVE_TYPE_CALCULATED_LEVEL_1;
+    }
 
     make_move(best_move_index);
+}
+
+uint8_t autoplay_get_move_type(){
+    return autoplay_move_type;
+}
+
+uint8_t auto_play_get_move_from_opening_database(){
+
+    opening_next_move_suggestion();
 }
 
 uint8_t autoplay_get_best_next_move(uint8_t player)
