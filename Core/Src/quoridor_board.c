@@ -32,7 +32,7 @@ static cursor_pawn_row = CURSOR_NOT_SHOWN;
 
 static cursor_wall_row_col_dir[3];
 static uint8_t move_type;
-
+int8_t* move_history_deltas;
 
 void oled_init(){
     ssd1306_Init();
@@ -103,30 +103,6 @@ void board_set_cursor(uint8_t* row_col){
     cursor_pawn_col = row_col[1];
 }
 
-void board_draw_move_type(){
-    switch(move_type){
-        // ssd1306_SetCursor(90, 30); //100,10
-        //ssd1306_SetCursor(100, 50); //100,10
-        case AUTOPLAY_MOVE_TYPE_OPENING_DATABASE:
-        {
-            ssd1306_SetCursor(90, 50); //100,10
-            ssd1306_WriteString("ODB", Font_7x10, Black);
-            break;
-        }
-        case AUTOPLAY_MOVE_TYPE_CALCULATED_LEVEL_1:
-        {
-            ssd1306_SetCursor(90, 50); //100,10
-            ssd1306_WriteString("L1", Font_7x10, Black);
-            break;
-        }
-        default:
-        {
-            ssd1306_SetCursor(90, 50); //100,10
-            ssd1306_WriteString("C", Font_7x10, Black);
-            break;
-        }
-    }
-}
 
 void board_draw_cursor_wall(){
      if (cursor_wall_row_col_dir[0] == CURSOR_NOT_SHOWN || cursor_wall_row_col_dir[1] == CURSOR_NOT_SHOWN){
@@ -156,10 +132,11 @@ void board_draw_cursor_pawn(){
         );
 }
 
-void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t player_1_wall_placed, uint8_t player_2_wall_placed, uint8_t* player_1_walls, uint8_t* player_2_walls, uint8_t* distances_to_win, uint8_t move_counter_a){
+void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t player_1_wall_placed, uint8_t player_2_wall_placed, uint8_t* player_1_walls, uint8_t* player_2_walls, uint8_t* distances_to_win, uint8_t move_counter_a, int8_t* move_deltas){
    
     uint8_t* walls;
     uint8_t* input_walls;
+    move_history_deltas = move_deltas;
 
     move_counter_b = move_counter_a;
     for (uint8_t player=0;player<2;player++){
@@ -192,6 +169,21 @@ void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t pl
 
 void board_info_draw(){
 
+    // delta history graph can be overwritten by other items (because of it's unboundedness.)
+    for (uint8_t i=0;i<RECORD_MOVES_HISTORY_LENGTH;i++){
+        
+        int8_t deltaOffset = move_history_deltas[i];
+        // if (deltaOffset > 0){
+            ssd1306_Line(
+                BOARD_MENU_X_OFFSET + i, 
+                BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT+ 2*BOARD_MENU_ROW_HEIGHT + 5, 
+                BOARD_MENU_X_OFFSET + i, 
+                BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT+ 2*BOARD_MENU_ROW_HEIGHT + 5 + deltaOffset ,
+                Black);   
+
+        // }
+    }
+
     // vertical thick board border
     for (uint8_t i=0;i<2;i++){
         ssd1306_Line(
@@ -213,6 +205,8 @@ void board_info_draw(){
     ssd1306_WriteString("Path", Font_7x10, Black);
 
     // values
+
+    // Walls
     char* values_as_char[2];
     uint8_t x_offset_align_center=0;
     x_offset_align_center = ( (10 - players[0].walls_placed) < 10) * BOARD_MENU_COL_ALIGN_CENTER;
@@ -225,52 +219,49 @@ void board_info_draw(){
     snprintf(values_as_char, sizeof(values_as_char), "%d", 10 - players[1].walls_placed);
     ssd1306_WriteString(values_as_char, Font_7x10, Black);
 
-
-    char* distance_player_1 [2];
-    snprintf(distance_player_1, sizeof(distance_player_1), "%d", players[0].distance_to_win);
-    
+    // Distances to win
     x_offset_align_center = (players[0].distance_to_win < 10) * BOARD_MENU_COL_ALIGN_CENTER;
     ssd1306_SetCursor(BOARD_MENU_X_OFFSET + BOARD_MENU_COL_ITEMS_WIDTH + x_offset_align_center, BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT+ BOARD_MENU_ROW_HEIGHT);
-    ssd1306_WriteString(distance_player_1, Font_7x10, Black);
+    snprintf(values_as_char, sizeof(values_as_char), "%d", players[0].distance_to_win);
+    ssd1306_WriteString(values_as_char, Font_7x10, Black);
 
-    char* distance_player_2 [2];
-    snprintf(distance_player_2, sizeof(distance_player_2), "%d", players[1].distance_to_win);
     x_offset_align_center = (players[1].distance_to_win < 10) * BOARD_MENU_COL_ALIGN_CENTER;
-
+    snprintf(values_as_char, sizeof(values_as_char), "%d", players[1].distance_to_win);
     ssd1306_SetCursor(BOARD_MENU_X_OFFSET + BOARD_MENU_COL_ITEMS_WIDTH + BOARD_MENU_COL_WIDTH + x_offset_align_center, BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT + BOARD_MENU_ROW_HEIGHT);
-    ssd1306_WriteString(distance_player_2, Font_7x10, Black);
+    ssd1306_WriteString(values_as_char, Font_7x10, Black);
     
-    // // game meta data display next to the board
-    // ssd1306_SetCursor(70, 1);
-
-    // ssd1306_WriteString("Dist 1:", Font_7x10, Black);
-
-    // char* distance_player_1 [2];
-    // snprintf(distance_player_1, sizeof(distance_player_1), "%d", players[0].distance_to_win);
-    
-    // ssd1306_SetCursor(70, 12);
-    // ssd1306_WriteString(distance_player_1, Font_7x10, Black);
-
-    // char* distance_player_2 [2];
-    // snprintf(distance_player_2, sizeof(distance_player_2), "%d", players[1].distance_to_win);
-
-    // ssd1306_SetCursor(70, 26);
-    // ssd1306_WriteString("Dist 2:", Font_7x10, Black);
-    // ssd1306_SetCursor(70, 37);
-    // ssd1306_WriteString(distance_player_2, Font_7x10, Black);
-
-    // char* move_counter_text [2];
-    // snprintf(move_counter_text, sizeof(move_counter_text), "Mo: %d", move_counter_b);
-
-    // ssd1306_SetCursor(70, 48);
-    // ssd1306_WriteString(move_counter_text, Font_7x10, Black);
-
-
-
+    // move counter 
+    snprintf(values_as_char, sizeof(values_as_char), "%d", move_counter_b);
+    ssd1306_SetCursor(BOARD_MENU_X_OFFSET, BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT+  3 * BOARD_MENU_ROW_HEIGHT);
+    ssd1306_WriteString(values_as_char, Font_7x10, Black);
 }
 
-
-
+void board_draw_move_type(){
+    switch(move_type){
+        // ssd1306_SetCursor(90, 30); //100,10
+        //ssd1306_SetCursor(100, 50); //100,10
+        case AUTOPLAY_MOVE_TYPE_OPENING_DATABASE:
+        {
+            // ssd1306_SetCursor(103, 50); //100,10
+            ssd1306_SetCursor(BOARD_MENU_X_OFFSET + BOARD_MENU_COL_ITEMS_WIDTH, BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT+ 3*BOARD_MENU_ROW_HEIGHT);
+    
+            ssd1306_WriteString("DB", Font_7x10, Black);
+            break;
+        }
+        case AUTOPLAY_MOVE_TYPE_CALCULATED_LEVEL_1:
+        {
+            ssd1306_SetCursor(BOARD_MENU_X_OFFSET + BOARD_MENU_COL_ITEMS_WIDTH, BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT+ 3*BOARD_MENU_ROW_HEIGHT);
+            ssd1306_WriteString("L1", Font_7x10, Black);
+            break;
+        }
+        default:
+        {
+            ssd1306_SetCursor(BOARD_MENU_X_OFFSET + BOARD_MENU_COL_ITEMS_WIDTH, BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT+ 3*BOARD_MENU_ROW_HEIGHT);
+            ssd1306_WriteString("C", Font_7x10, Black);
+            break;
+        }
+    }
+}
 
 void board_state_draw(){
     ssd1306_Fill(White);    

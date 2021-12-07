@@ -16,6 +16,8 @@ int8_t moves_delta[140];                           // store all deltas of moves.
 uint8_t move_indeces_valid_for_current_board[140]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
 uint8_t player_winner_index;
 
+int8_t move_history_deltas_without_jumps[RECORD_MOVES_HISTORY_LENGTH];
+
 void game_init(void)
 {
     players[0].pawn.row = 0;
@@ -35,6 +37,11 @@ void game_init(void)
             players[player].walls[i].horizontal_else_vertical = 0;
         }
     }
+
+    for (uint8_t i=0;i<RECORD_MOVES_HISTORY_LENGTH;i++){
+        move_history_deltas_without_jumps[i] = 0;
+    }
+
     for (uint8_t i = 0; i < MOVE_INDEX_COUNT; i++)
     {
         move_indeces_valid_for_current_board[i] = 1;
@@ -52,6 +59,10 @@ uint8_t get_winner_index()
 {
     // will return NO_WINNER if nobody won
     return player_winner_index;
+}
+
+int8_t* get_move_history_deltas_without_jumps(){
+    return move_history_deltas_without_jumps;
 }
 
 uint8_t get_player_won(uint8_t player)
@@ -258,6 +269,15 @@ uint8_t make_move_if_valid(uint8_t move_index)
 
 void make_move(uint8_t move_index)
 {
+    // store delta in move history (this does not take into account the other pawn.)
+
+    if (move_counter < RECORD_MOVES_HISTORY_LENGTH){
+        move_history_deltas_without_jumps [move_counter] = graph_delta_of_distances(
+            pawn_get_position_as_node_index(0),
+            pawn_get_position_as_node_index(1));
+    }
+
+
     // use make_move_if_valid() if there is user input and need for feedback
     // do a validy check before calling this function.
     // it will ASSERT error at invalid moves.
@@ -283,6 +303,7 @@ void make_move(uint8_t move_index)
     {
         make_move_wall(get_playing_player(), move_index);
     }
+
 
     move_counter++;
 
