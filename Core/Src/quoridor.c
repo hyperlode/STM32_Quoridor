@@ -436,6 +436,6 @@ void display_game_state()
     walls_get_all_positions(players_walls[0], 0);
     walls_get_all_positions(players_walls[1], 1);
 
-    board_state_update(players_positions[0], players_positions[1], players_walls[0], players_walls[1], distances_to_end, get_move_counter());
+    board_state_update(players_positions[0], players_positions[1], get_walls_placed(0), get_walls_placed(1), players_walls[0], players_walls[1], distances_to_end, get_move_counter());
     board_state_draw();
 }

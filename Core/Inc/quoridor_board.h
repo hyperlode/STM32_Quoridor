@@ -10,7 +10,7 @@ void board_set_cursor(uint8_t* row_col);
 void board_draw_cursor_pawn();
 void oard_draw_cursor_wall();
 
-void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* player_1_walls, uint8_t* player_2_walls, uint8_t* distances_to_win, uint8_t move_counter_a);
+void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t player_1_wall_placed, uint8_t player_2_wall_placed, uint8_t* player_1_walls, uint8_t* player_2_walls, uint8_t* distances_to_win, uint8_t move_counter_a);
 
 void board_state_draw();
 
@@ -20,7 +20,7 @@ void board_draw_outline();
 
 void board_draw_dots();
 
-void board_draw_pawn(uint8_t row, uint8_t col, uint8_t fill);
+void board_draw_pawn_row_col(uint8_t row, uint8_t col, uint8_t fill);
 
 void board_draw_wall(uint8_t row, uint8_t col, uint8_t horizontal_else_vertical, uint8_t fat_wall );
 

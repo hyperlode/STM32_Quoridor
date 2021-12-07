@@ -6,7 +6,7 @@
   
 
 #define BOARD_CELL_SPACING 7
-#define BOARD_OFFSET_X 7
+#define BOARD_OFFSET_X 0
 #define BOARD_OFFSET_Y 0
 
 
@@ -56,7 +56,7 @@ void menu_display_ingame(uint8_t active_item){
     ssd1306_SetCursor(15, 48);
     ssd1306_WriteString("Back with Toggle ", Font_7x10, Black);
     
-    board_draw_pawn(active_item * 2 + 1, 0 , 1);
+    board_draw_pawn_row_col(active_item * 2 + 1, 0 , 1);
 
     ssd1306_UpdateScreen();
 
@@ -78,7 +78,7 @@ void menu_display(uint8_t active_item){
     ssd1306_SetCursor(15, 48);
     ssd1306_WriteString("Machine battle", Font_7x10, Black);
     
-    board_draw_pawn(active_item * 2 + 1, 0 , 1);
+    board_draw_pawn_row_col(active_item * 2 + 1, 0 , 1);
 
     ssd1306_UpdateScreen();
 
@@ -105,21 +105,23 @@ void board_set_cursor(uint8_t* row_col){
 
 void board_draw_move_type(){
     switch(move_type){
+        // ssd1306_SetCursor(90, 30); //100,10
+        //ssd1306_SetCursor(100, 50); //100,10
         case AUTOPLAY_MOVE_TYPE_OPENING_DATABASE:
         {
-            ssd1306_SetCursor(100, 10);
+            ssd1306_SetCursor(90, 50); //100,10
             ssd1306_WriteString("ODB", Font_7x10, Black);
             break;
         }
         case AUTOPLAY_MOVE_TYPE_CALCULATED_LEVEL_1:
         {
-            ssd1306_SetCursor(100, 10);
+            ssd1306_SetCursor(90, 50); //100,10
             ssd1306_WriteString("L1", Font_7x10, Black);
             break;
         }
         default:
         {
-           ssd1306_SetCursor(100, 10);
+            ssd1306_SetCursor(90, 50); //100,10
             ssd1306_WriteString("C", Font_7x10, Black);
             break;
         }
@@ -154,7 +156,7 @@ void board_draw_cursor_pawn(){
         );
 }
 
-void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* player_1_walls, uint8_t* player_2_walls, uint8_t* distances_to_win, uint8_t move_counter_a){
+void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t player_1_wall_placed, uint8_t player_2_wall_placed, uint8_t* player_1_walls, uint8_t* player_2_walls, uint8_t* distances_to_win, uint8_t move_counter_a){
    
     uint8_t* walls;
     uint8_t* input_walls;
@@ -167,6 +169,7 @@ void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* p
             players[0].pawn.fill = 0;
             input_walls = player_1_walls;
             players[0].distance_to_win = distances_to_win[0];
+            players[0].walls_placed = player_1_wall_placed;
                       
         }else{
             players[1].pawn.row = player_2_pos[0];
@@ -174,6 +177,7 @@ void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* p
             players[1].pawn.fill = 1;
             input_walls = player_2_walls;
             players[1].distance_to_win = distances_to_win[1];
+            players[1].walls_placed = player_2_wall_placed;
         }
 
         struct Wall* tmp;
@@ -186,12 +190,94 @@ void board_state_update(uint8_t* player_1_pos, uint8_t* player_2_pos, uint8_t* p
     }
 }
 
+void board_info_draw(){
+
+    // vertical thick board border
+    for (uint8_t i=0;i<2;i++){
+        ssd1306_Line(
+            BOARD_OFFSET_X + i + 9 * BOARD_CELL_SPACING, 
+            BOARD_OFFSET_Y, 
+            BOARD_OFFSET_X + i + 9 * BOARD_CELL_SPACING, 
+            BOARD_OFFSET_Y + BOARD_CELL_SPACING*9 ,
+            Black);   
+    }
+
+    board_draw_pawn (BOARD_MENU_X_OFFSET + BOARD_MENU_COL_ITEMS_WIDTH + 2, BOARD_MENU_Y_OFFSET, 0);
+    board_draw_pawn (BOARD_MENU_X_OFFSET + BOARD_MENU_COL_ITEMS_WIDTH + 19, BOARD_MENU_Y_OFFSET, 1);
+
+    // items
+    ssd1306_SetCursor(BOARD_MENU_X_OFFSET, BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT);
+    ssd1306_WriteString("Wall", Font_7x10, Black);
+
+    ssd1306_SetCursor(BOARD_MENU_X_OFFSET, BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT + BOARD_MENU_ROW_HEIGHT);
+    ssd1306_WriteString("Path", Font_7x10, Black);
+
+    // values
+    char* values_as_char[2];
+    uint8_t x_offset_align_center=0;
+    x_offset_align_center = ( (10 - players[0].walls_placed) < 10) * BOARD_MENU_COL_ALIGN_CENTER;
+    ssd1306_SetCursor(BOARD_MENU_X_OFFSET + BOARD_MENU_COL_ITEMS_WIDTH + x_offset_align_center, BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT);
+    snprintf(values_as_char, sizeof(values_as_char), "%d", 10 - players[0].walls_placed);
+    ssd1306_WriteString(values_as_char, Font_7x10, Black);
+    
+    x_offset_align_center = ((10 - players[1].walls_placed) < 10) * BOARD_MENU_COL_ALIGN_CENTER;
+    ssd1306_SetCursor(BOARD_MENU_X_OFFSET + BOARD_MENU_COL_ITEMS_WIDTH + BOARD_MENU_COL_WIDTH + x_offset_align_center, BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT);
+    snprintf(values_as_char, sizeof(values_as_char), "%d", 10 - players[1].walls_placed);
+    ssd1306_WriteString(values_as_char, Font_7x10, Black);
+
+
+    char* distance_player_1 [2];
+    snprintf(distance_player_1, sizeof(distance_player_1), "%d", players[0].distance_to_win);
+    
+    x_offset_align_center = (players[0].distance_to_win < 10) * BOARD_MENU_COL_ALIGN_CENTER;
+    ssd1306_SetCursor(BOARD_MENU_X_OFFSET + BOARD_MENU_COL_ITEMS_WIDTH + x_offset_align_center, BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT+ BOARD_MENU_ROW_HEIGHT);
+    ssd1306_WriteString(distance_player_1, Font_7x10, Black);
+
+    char* distance_player_2 [2];
+    snprintf(distance_player_2, sizeof(distance_player_2), "%d", players[1].distance_to_win);
+    x_offset_align_center = (players[1].distance_to_win < 10) * BOARD_MENU_COL_ALIGN_CENTER;
+
+    ssd1306_SetCursor(BOARD_MENU_X_OFFSET + BOARD_MENU_COL_ITEMS_WIDTH + BOARD_MENU_COL_WIDTH + x_offset_align_center, BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT + BOARD_MENU_ROW_HEIGHT);
+    ssd1306_WriteString(distance_player_2, Font_7x10, Black);
+    
+    // // game meta data display next to the board
+    // ssd1306_SetCursor(70, 1);
+
+    // ssd1306_WriteString("Dist 1:", Font_7x10, Black);
+
+    // char* distance_player_1 [2];
+    // snprintf(distance_player_1, sizeof(distance_player_1), "%d", players[0].distance_to_win);
+    
+    // ssd1306_SetCursor(70, 12);
+    // ssd1306_WriteString(distance_player_1, Font_7x10, Black);
+
+    // char* distance_player_2 [2];
+    // snprintf(distance_player_2, sizeof(distance_player_2), "%d", players[1].distance_to_win);
+
+    // ssd1306_SetCursor(70, 26);
+    // ssd1306_WriteString("Dist 2:", Font_7x10, Black);
+    // ssd1306_SetCursor(70, 37);
+    // ssd1306_WriteString(distance_player_2, Font_7x10, Black);
+
+    // char* move_counter_text [2];
+    // snprintf(move_counter_text, sizeof(move_counter_text), "Mo: %d", move_counter_b);
+
+    // ssd1306_SetCursor(70, 48);
+    // ssd1306_WriteString(move_counter_text, Font_7x10, Black);
+
+
+
+}
+
+
+
+
 void board_state_draw(){
     ssd1306_Fill(White);    
     board_draw_dots();
 
     for (uint8_t player=0;player<2;player++){
-        board_draw_pawn(players[player].pawn.row,players[player].pawn.col,players[player].pawn.fill);
+        board_draw_pawn_row_col(players[player].pawn.row,players[player].pawn.col,players[player].pawn.fill);
 
         for (uint8_t wall=0;wall<10;wall++){
             board_draw_wall(
@@ -201,30 +287,7 @@ void board_state_draw(){
                 0);
         }
     }
-    ssd1306_SetCursor(70, 1);
-
-    ssd1306_WriteString("Dist 1:", Font_7x10, Black);
-
-    char* distance_player_1 [2];
-    snprintf(distance_player_1, sizeof(distance_player_1), "%d", players[0].distance_to_win);
-    
-    ssd1306_SetCursor(70, 12);
-    ssd1306_WriteString(distance_player_1, Font_7x10, Black);
-
-    char* distance_player_2 [2];
-    snprintf(distance_player_2, sizeof(distance_player_2), "%d", players[1].distance_to_win);
-
-    ssd1306_SetCursor(70, 26);
-    ssd1306_WriteString("Dist 2:", Font_7x10, Black);
-    ssd1306_SetCursor(70, 37);
-    ssd1306_WriteString(distance_player_2, Font_7x10, Black);
-
-    char* move_counter_text [2];
-    snprintf(move_counter_text, sizeof(move_counter_text), "Mo: %d", move_counter_b);
-
-    ssd1306_SetCursor(70, 48);
-    ssd1306_WriteString(move_counter_text, Font_7x10, Black);
-
+    board_info_draw();
     board_draw_cursor_pawn();
     board_draw_cursor_wall();
     board_draw_move_type();
@@ -239,8 +302,8 @@ void board_state_draw(){
 void board_draw_test(){
     ssd1306_Fill(White);    
     board_draw_dots();
-    board_draw_pawn(0,4,0);
-    board_draw_pawn(8,4,1);
+    board_draw_pawn_row_col(0,4,0);
+    board_draw_pawn_row_col(8,4,1);
     board_draw_wall(3,3,1,1);
     board_draw_wall(5,3,1,1);
     board_draw_wall(1,4,0,1);
@@ -252,12 +315,26 @@ void board_draw_test(){
 }
 
 void board_draw_outline(){
+
+    // horizontal lines
     for (uint8_t border_row=0;border_row<10;border_row+=9){
         // SSD1306_HEIGHT
-        ssd1306_Line(BOARD_OFFSET_X, BOARD_OFFSET_Y + border_row*BOARD_CELL_SPACING, BOARD_OFFSET_X + BOARD_CELL_SPACING*9, BOARD_OFFSET_Y + border_row*BOARD_CELL_SPACING ,Black);   
+        ssd1306_Line(
+            BOARD_OFFSET_X, 
+            BOARD_OFFSET_Y + border_row*BOARD_CELL_SPACING, 
+            BOARD_OFFSET_X + BOARD_CELL_SPACING*9, 
+            BOARD_OFFSET_Y + border_row*BOARD_CELL_SPACING ,
+            Black);   
     }
+
+    // vertical lines
     for (uint8_t border_col=0;border_col<10;border_col+=9){
-        ssd1306_Line(BOARD_OFFSET_X + border_col*BOARD_CELL_SPACING, BOARD_OFFSET_Y, BOARD_OFFSET_X + border_col*BOARD_CELL_SPACING, BOARD_OFFSET_Y + BOARD_CELL_SPACING*9 ,Black);   
+        ssd1306_Line(
+            BOARD_OFFSET_X + border_col*BOARD_CELL_SPACING, 
+            BOARD_OFFSET_Y, 
+            BOARD_OFFSET_X + border_col*BOARD_CELL_SPACING, 
+            BOARD_OFFSET_Y + BOARD_CELL_SPACING*9 ,
+            Black);   
     }
 }
 
@@ -269,27 +346,51 @@ void board_draw_dots(){
     }
 }
 
-void board_draw_pawn(uint8_t row, uint8_t col, uint8_t fill){
-    // row, col : 0 to 8
-    // fill vs nofill for player distinction
-    row = 8 - row;
+void board_draw_pawn(uint8_t x, uint8_t y, uint8_t fill){
     ssd1306_DrawRectangle(
-        PAWN_CELL_OFFSET_X + BOARD_OFFSET_X + col*BOARD_CELL_SPACING, 
-        PAWN_CELL_OFFSET_Y + BOARD_OFFSET_Y + row*BOARD_CELL_SPACING, 
-        PAWN_CELL_OFFSET_X + BOARD_OFFSET_X + col*BOARD_CELL_SPACING + PAWN_WIDTH, 
-        PAWN_CELL_OFFSET_Y + BOARD_OFFSET_Y + row*BOARD_CELL_SPACING + PAWN_HEIGHT,
+        PAWN_CELL_OFFSET_X + BOARD_OFFSET_X + x, 
+        PAWN_CELL_OFFSET_Y + BOARD_OFFSET_Y + y, 
+        PAWN_CELL_OFFSET_X + BOARD_OFFSET_X + x + PAWN_WIDTH, 
+        PAWN_CELL_OFFSET_Y + BOARD_OFFSET_Y + y + PAWN_HEIGHT,
         Black
         );
 
     if (fill){
         ssd1306_DrawRectangle(
-            PAWN_CELL_OFFSET_X + BOARD_OFFSET_X + col*BOARD_CELL_SPACING + 1, 
-            PAWN_CELL_OFFSET_Y + BOARD_OFFSET_Y + row*BOARD_CELL_SPACING + 1, 
-            PAWN_CELL_OFFSET_X + BOARD_OFFSET_X + col*BOARD_CELL_SPACING + PAWN_WIDTH - 1, 
-            PAWN_CELL_OFFSET_Y + BOARD_OFFSET_Y + row*BOARD_CELL_SPACING + PAWN_HEIGHT - 1,
+            PAWN_CELL_OFFSET_X + BOARD_OFFSET_X + x + 1, 
+            PAWN_CELL_OFFSET_Y + BOARD_OFFSET_Y + y + 1, 
+            PAWN_CELL_OFFSET_X + BOARD_OFFSET_X + x + PAWN_WIDTH - 1, 
+            PAWN_CELL_OFFSET_Y + BOARD_OFFSET_Y + y + PAWN_HEIGHT - 1,
             Black
             );
     }
+}
+void board_draw_pawn_row_col(uint8_t row, uint8_t col, uint8_t fill){
+    // row, col : 0 to 8
+    // fill vs nofill for player distinction
+    row = 8 - row;
+
+    board_draw_pawn(col*BOARD_CELL_SPACING, row*BOARD_CELL_SPACING, fill);
+
+
+    // row = 8 - row;
+    // ssd1306_DrawRectangle(
+    //     PAWN_CELL_OFFSET_X + BOARD_OFFSET_X + col*BOARD_CELL_SPACING, 
+    //     PAWN_CELL_OFFSET_Y + BOARD_OFFSET_Y + row*BOARD_CELL_SPACING, 
+    //     PAWN_CELL_OFFSET_X + BOARD_OFFSET_X + col*BOARD_CELL_SPACING + PAWN_WIDTH, 
+    //     PAWN_CELL_OFFSET_Y + BOARD_OFFSET_Y + row*BOARD_CELL_SPACING + PAWN_HEIGHT,
+    //     Black
+    //     );
+
+    // if (fill){
+    //     ssd1306_DrawRectangle(
+    //         PAWN_CELL_OFFSET_X + BOARD_OFFSET_X + col*BOARD_CELL_SPACING + 1, 
+    //         PAWN_CELL_OFFSET_Y + BOARD_OFFSET_Y + row*BOARD_CELL_SPACING + 1, 
+    //         PAWN_CELL_OFFSET_X + BOARD_OFFSET_X + col*BOARD_CELL_SPACING + PAWN_WIDTH - 1, 
+    //         PAWN_CELL_OFFSET_Y + BOARD_OFFSET_Y + row*BOARD_CELL_SPACING + PAWN_HEIGHT - 1,
+    //         Black
+    //         );
+    // }
 }
 
 void board_draw_wall(uint8_t row, uint8_t col, uint8_t horizontal_else_vertical, uint8_t fat_wall ){
