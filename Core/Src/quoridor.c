@@ -20,16 +20,18 @@ uint8_t menu_ingame_active_memory;
 
 uint8_t program_state;
 
-uint8_t auto_play_pause = 0;
+uint8_t auto_play_single_step_mode;
 void quoridor_init()
 {
     quoridor_state = STATE_QUORIDOR_INIT;
     program_state = STATE_PROGRAM_MENU_GAMETYPE_INIT;
+    auto_play_single_step_mode = 0;
 }
 
 void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
 {
 
+  
     switch (program_state)
     {
 
@@ -237,6 +239,10 @@ void quoridor_human_vs_human_manager(uint8_t north, uint8_t east, uint8_t south,
 
 void quoridor_computer_vs_computer_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
 {
+    if (enter){
+        auto_play_single_step_mode = !auto_play_single_step_mode;
+    }
+
     switch (quoridor_state)
     {
     case (STATE_QUORIDOR_INIT):
@@ -258,14 +264,7 @@ void quoridor_computer_vs_computer_manager(uint8_t north, uint8_t east, uint8_t 
     case (STATE_QUORIDOR_COMPUTER_TURN):
     {
 
-        if (west){
-            if (auto_play_pause){
-                auto_play_pause = 0;
-            }else{
-                auto_play_pause = 1;
-            }
-        }
-        if (!auto_play_pause){
+        if (!auto_play_single_step_mode || north  || south || east || west){
                 
             autoplay_execute_next_move();
             if (get_winner_index() != NO_WINNER)
@@ -277,8 +276,8 @@ void quoridor_computer_vs_computer_manager(uint8_t north, uint8_t east, uint8_t 
                 quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_INIT;
             }
             board_set_move_type(autoplay_get_move_type());
-            display_game_state();
         }
+        display_game_state();
         break;
     }
     case (STATE_QUORIDOR_FINISHED):
