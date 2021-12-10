@@ -5,7 +5,7 @@
 
 _BEGIN_STD_C
 
-void raise_error(uint8_t error_code);
+void raise_error(uint8_t error_code_parameter);
 
 _END_STD_C
 #endif // QUORIDOR_ERROR_H
