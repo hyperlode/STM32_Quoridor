@@ -7,23 +7,26 @@ uint8_t end_of_game;
 
 uint8_t autoplay_move_type;
 
-uint8_t autoplay_init(){
+uint8_t autoplay_init()
+{
     end_of_game = 0;
 }
 
-
-
 uint8_t autoplay_execute_next_move()
 {
-    if (end_of_game){
+    if (end_of_game)
+    {
         raise_error(111);
     }
 
     uint8_t best_move_index;
     best_move_index = auto_play_get_move_from_opening_database();
     autoplay_move_type = AUTOPLAY_MOVE_TYPE_OPENING_DATABASE;
-
-    if (best_move_index == MOVE_INDEX_DUMMY){
+    
+    if (
+        best_move_index == MOVE_INDEX_DUMMY ||
+        !get_move_index_valid()) // database move cannot be trusted. Check for validity.
+    {
         best_move_index = autoplay_get_best_next_move(get_playing_player());
         autoplay_move_type = AUTOPLAY_MOVE_TYPE_CALCULATED_LEVEL_1;
     }
@@ -31,11 +34,13 @@ uint8_t autoplay_execute_next_move()
     make_move(best_move_index);
 }
 
-uint8_t autoplay_get_move_type(){
+uint8_t autoplay_get_move_type()
+{
     return autoplay_move_type;
 }
 
-uint8_t auto_play_get_move_from_opening_database(){
+uint8_t auto_play_get_move_from_opening_database()
+{
 
     opening_next_move_suggestion();
 }
@@ -47,7 +52,7 @@ uint8_t autoplay_get_best_next_move(uint8_t player)
     // deltas are normalized for the current player. Meaning: higher delta is better. positive delta = winning.
 
     int8_t best_delta;
-   
+
     best_delta = -127; // worst as init
 
     // draws
@@ -72,13 +77,14 @@ uint8_t autoplay_get_best_next_move(uint8_t player)
         int8_t delta;
         delta = get_delta_of_move_index_normalized(move_index);
 
-        if (delta == (DELTA_WINNING_MOVE_MAGNITUDE)){
+        if (delta == (DELTA_WINNING_MOVE_MAGNITUDE))
+        {
             end_of_game = 1;
         }
 
         if (delta != FAKE_DELTA_FOR_INVALID_MOVE)
         {
-            if (delta> best_delta)
+            if (delta > best_delta)
             {
                 best_delta = delta;
                 equal_delta_moves_count = 0;
@@ -109,7 +115,7 @@ uint8_t autoplay_get_best_next_move(uint8_t player)
     // choose a move
     uint8_t rand_index;
 
-    #define COMPUTER_PLAYER_AGRESSIVENESS 20
+#define COMPUTER_PLAYER_AGRESSIVENESS 20
     uint8_t wall_aggressiveness = COMPUTER_PLAYER_AGRESSIVENESS;
 
     uint8_t prioritizes_wall_over_pawn;
