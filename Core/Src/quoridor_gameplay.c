@@ -16,7 +16,8 @@ int8_t moves_delta[140];                           // store all deltas of moves.
 uint8_t move_indeces_valid_for_current_board[140]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
 uint8_t player_winner_index;
 
-int8_t move_history_deltas_without_jumps[RECORD_MOVES_HISTORY_LENGTH];
+int8_t move_history_deltas_without_jumps[RECORD_MOVES_HISTORY_LENGTH]; // contains the delta change for every move
+uint8_t game_history_moves_indeces[RECORD_MOVES_HISTORY_LENGTH]; // contains all moves of a game by move_index 
 
 void game_init(void)
 {
@@ -38,7 +39,8 @@ void game_init(void)
         }
     }
 
-    for (uint8_t i=0;i<RECORD_MOVES_HISTORY_LENGTH;i++){
+    for (uint8_t i = 0; i < RECORD_MOVES_HISTORY_LENGTH; i++)
+    {
         move_history_deltas_without_jumps[i] = 0;
     }
 
@@ -61,7 +63,8 @@ uint8_t get_winner_index()
     return player_winner_index;
 }
 
-int8_t* get_move_history_deltas_without_jumps(){
+int8_t *get_move_history_deltas_without_jumps()
+{
     return move_history_deltas_without_jumps;
 }
 
@@ -112,7 +115,7 @@ int8_t get_delta_of_move_index_normalized(uint8_t move_index)
 
 uint8_t get_best_pawn_move()
 {
-    uint8_t best_move_index; // there will always be a valid one in the end.
+    uint8_t best_move_index; // there will always be at least one valid move in the end.
     int8_t best_move_index_delta = -127;
     uint8_t equal_deltas_count = 0;
 
@@ -241,12 +244,12 @@ uint8_t get_move_counter()
 
 void load_game_by_notation_one_string(moves_as_notation_one_string)
 {
-    moves_string_to_moves_indeces(moves_as_notation_one_string, moves_indeces);
+    moves_string_to_moves_indeces(moves_as_notation_one_string, game_history_moves_indeces);
 }
 
 void next_move_loaded_game(void)
 {
-    uint8_t move_index = moves_indeces[move_counter];
+    uint8_t move_index = game_history_moves_indeces[move_counter];
     make_move(move_index);
 };
 
@@ -271,12 +274,12 @@ void make_move(uint8_t move_index)
 {
     // store delta in move history (this does not take into account the other pawn.)
 
-    if (move_counter < RECORD_MOVES_HISTORY_LENGTH){
-        move_history_deltas_without_jumps [move_counter] = graph_delta_of_distances(
+    if (move_counter < RECORD_MOVES_HISTORY_LENGTH)
+    {
+        move_history_deltas_without_jumps[move_counter] = graph_delta_of_distances(
             pawn_get_position_as_node_index(0),
             pawn_get_position_as_node_index(1));
     }
-
 
     // use make_move_if_valid() if there is user input and need for feedback
     // do a validy check before calling this function.
@@ -304,13 +307,21 @@ void make_move(uint8_t move_index)
         make_move_wall(get_playing_player(), move_index);
     }
 
-
     move_counter++;
 
     // prepare for next move
     opening_update_game_move(move_index, move_counter);
     analyse_possible_moves(get_playing_player());
     return;
+}
+
+void undo_last_move(){
+
+    // get move index
+
+    // remove from graph if wall
+    // do inverted move if pawn
+
 }
 
 uint8_t get_playing_player()
@@ -507,6 +518,19 @@ uint8_t check_move_possible_pawn_L_jump(player, start_node, direction_1, directi
     return 1;
 }
 
+
+void undo_last_placed_wall(uint8_t player){
+    // dangerous waters here
+    // move_index_to_row_col_dir(move_index, wall_row_col_dir);
+    uint8_t row_col_dir[3];
+    pop_last_placed_wall(player, row_col_dir);
+    uint8_t move_index = row_col_dir_to_move_index(row_col_dir);
+    graph_wall_remove(move_index);
+
+    // set back validities
+    
+}
+
 uint8_t make_move_wall(uint8_t player, uint8_t move_index)
 {
     uint8_t wall_row_col_dir[3];
@@ -525,72 +549,76 @@ uint8_t make_move_wall(uint8_t player, uint8_t move_index)
     move_indeces_valid_for_current_board[move_index] = 0;
     moves_delta[move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
 
-    uint8_t r_c_d[3];
-
-    uint8_t invalid_move_index;
-
     if (wall_row_col_dir[2])
     {
         // horizonal
-
+        // inline neighbour
         if (wall_row_col_dir[1] < 8)
         {
-            r_c_d[0] = wall_row_col_dir[0];
-            r_c_d[1] = wall_row_col_dir[1] + 1;
-            r_c_d[2] = 1;
-            invalid_move_index = row_col_dir_to_move_index(r_c_d);
-            move_indeces_valid_for_current_board[invalid_move_index] = 0;
-            moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
+            delete_wall_move_from_valid_moves(
+                wall_row_col_dir[0],
+                wall_row_col_dir[1] + 1,
+                1);
         }
+        // inline neighbour
         if (wall_row_col_dir[1] > 1)
         {
-            r_c_d[0] = wall_row_col_dir[0];
-            r_c_d[1] = wall_row_col_dir[1] - 1;
-            r_c_d[2] = 1;
-            invalid_move_index = row_col_dir_to_move_index(r_c_d);
-            move_indeces_valid_for_current_board[invalid_move_index] = 0;
-            moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
+            delete_wall_move_from_valid_moves(
+                wall_row_col_dir[0],
+                wall_row_col_dir[1] - 1,
+                1);
         }
-        r_c_d[0] = wall_row_col_dir[0];
-        r_c_d[1] = wall_row_col_dir[1];
-        r_c_d[2] = 0;
-        invalid_move_index = row_col_dir_to_move_index(r_c_d);
-        move_indeces_valid_for_current_board[invalid_move_index] = 0;
-        moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
+        // cut through neighbour
+        delete_wall_move_from_valid_moves(
+            wall_row_col_dir[0],
+            wall_row_col_dir[1] ,
+            0);
     }
     else
     {
         // vertical
-
+        
+        // inline neighbour
         if (wall_row_col_dir[0] < 8)
         {
-            r_c_d[0] = wall_row_col_dir[0] + 1;
-            r_c_d[1] = wall_row_col_dir[1];
-            r_c_d[2] = 0;
-            invalid_move_index = row_col_dir_to_move_index(r_c_d);
-            move_indeces_valid_for_current_board[invalid_move_index] = 0;
-            moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
+             delete_wall_move_from_valid_moves(
+                wall_row_col_dir[0] + 1,
+                wall_row_col_dir[1],
+                0);
         }
+
+        // inline neighbour
         if (wall_row_col_dir[0] > 1)
         {
-            r_c_d[0] = wall_row_col_dir[0] - 1;
-            r_c_d[1] = wall_row_col_dir[1];
-            r_c_d[2] = 0;
-            invalid_move_index = row_col_dir_to_move_index(r_c_d);
-            move_indeces_valid_for_current_board[invalid_move_index] = 0;
-            moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
+            delete_wall_move_from_valid_moves(
+                wall_row_col_dir[0] - 1,
+                wall_row_col_dir[1],
+                0);
         }
-        r_c_d[0] = wall_row_col_dir[0];
-        r_c_d[1] = wall_row_col_dir[1];
-        r_c_d[2] = 1;
-        invalid_move_index = row_col_dir_to_move_index(r_c_d);
-        move_indeces_valid_for_current_board[invalid_move_index] = 0;
-        moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
+
+        // cut through neighbour
+        delete_wall_move_from_valid_moves(
+            wall_row_col_dir[0],
+            wall_row_col_dir[1],
+            1);
     }
 
-    players[player].walls_placed++;
+    
     return 1;
 };
+
+void delete_wall_move_from_valid_moves(uint8_t row, uint8_t col, uint8_t dir){
+
+    uint8_t row_col_dir[3];
+    row_col_dir[0] = row;
+    row_col_dir[1] = col;
+    row_col_dir[2] = dir;
+
+    uint8_t invalid_move_index;
+    invalid_move_index = row_col_dir_to_move_index(row_col_dir);
+    move_indeces_valid_for_current_board[invalid_move_index] = 0;
+    moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
+}
 
 uint8_t row_col_dir_to_move_index(uint8_t *row_col_dir)
 {
@@ -635,10 +663,31 @@ void move_index_to_row_col_dir(uint8_t move_index, uint8_t *row_col_dir)
 
 void set_wall_by_row_col(uint8_t player, uint8_t row, uint8_t col, uint8_t horizontal_else_vertical)
 {
+
     players[player].walls[players[player].walls_placed].row = row;
     players[player].walls[players[player].walls_placed].col = col;
     players[player].walls[players[player].walls_placed].horizontal_else_vertical = horizontal_else_vertical;
+
+    players[player].walls_placed++;
 }
+
+
+
+void pop_last_placed_wall(uint8_t player, uint8_t* row_col_dir)
+{
+    // delete last placed wall
+    players[player].walls_placed--;
+
+    row_col_dir[0] = players[player].walls[players[player].walls_placed].row;
+    row_col_dir[1] = players[player].walls[players[player].walls_placed].col;
+    row_col_dir[2] = players[player].walls[players[player].walls_placed].horizontal_else_vertical;
+
+    players[player].walls[players[player].walls_placed].row = 0;
+    players[player].walls[players[player].walls_placed].col = 0;
+    players[player].walls[players[player].walls_placed].horizontal_else_vertical = 0;
+
+}
+
 
 void walls_get_all_positions(uint8_t *positions, uint8_t player)
 {

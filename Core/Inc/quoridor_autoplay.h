@@ -9,6 +9,8 @@ uint8_t autoplay_next_move();
 uint8_t autoplay_get_best_next_move(uint8_t player);
 
 uint8_t auto_play_get_move_from_opening_database();
+uint8_t autoplay_get_best_next_move(uint8_t player);
+uint8_t autoplay_get_best_next_move_L1(uint8_t player);
 // void autoplay_analyse_move_wall(uint8_t move_index, int8_t* delta);
 
 #endif //QUORIDOR_AUTOPLAY_H

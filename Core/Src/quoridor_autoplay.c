@@ -25,7 +25,7 @@ uint8_t autoplay_execute_next_move()
     
     if (
         best_move_index == MOVE_INDEX_DUMMY ||
-        !get_move_index_valid()) // database move cannot be trusted. Check for validity.
+        !get_move_index_valid(best_move_index)) // database move cannot be trusted. Check for validity.
     {
         best_move_index = autoplay_get_best_next_move(get_playing_player());
         autoplay_move_type = AUTOPLAY_MOVE_TYPE_CALCULATED_LEVEL_1;
@@ -45,7 +45,25 @@ uint8_t auto_play_get_move_from_opening_database()
     opening_next_move_suggestion();
 }
 
-uint8_t autoplay_get_best_next_move(uint8_t player)
+uint8_t autoplay_get_best_next_move(uint8_t player){
+    
+    return autoplay_get_best_next_move_L1(player);
+
+}
+
+uint8_t autoplay_get_best_next_move_L2(uint8_t player){
+    // for all valid moves:
+        
+        // make move
+        // check L1 for opponent and store deltas
+        // undo move
+
+    // analyse L1 deltas
+
+
+}
+
+uint8_t autoplay_get_best_next_move_L1(uint8_t player)
 {
     // from board state, get distances for all possible moves.
 
@@ -115,8 +133,8 @@ uint8_t autoplay_get_best_next_move(uint8_t player)
     // choose a move
     uint8_t rand_index;
 
-#define COMPUTER_PLAYER_AGRESSIVENESS 20
-    uint8_t wall_aggressiveness = COMPUTER_PLAYER_AGRESSIVENESS;
+
+    uint8_t wall_aggressiveness = COMPUTER_PLAYER_AGRESSIVENESS_EAGERNESS_TO_PLAY_WALL;
 
     uint8_t prioritizes_wall_over_pawn;
 
