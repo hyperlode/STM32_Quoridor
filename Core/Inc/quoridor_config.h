@@ -9,6 +9,8 @@ _BEGIN_STD_C
 // from 0 to 100 if a pawn move or wall placement result in the same delta, what is prioritized?
 #define COMPUTER_PLAYER_AGRESSIVENESS_EAGERNESS_TO_PLAY_WALL 20
 
+#define MOVE_INDEX_VALID 255
+
 #define BUTTON_NORTH 1
 #define BUTTON_EAST 2 
 #define BUTTON_SOUTH 4

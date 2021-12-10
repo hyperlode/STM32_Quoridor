@@ -12,8 +12,8 @@ static Player players[2];
 
 uint8_t moves_indeces[MAX_MOVES_COUNT];
 
-int8_t moves_delta[140];                           // store all deltas of moves. Combine with the "move_indeces_valid_for_current_board" to only check the relevant indeces.
-uint8_t move_indeces_valid_for_current_board[140]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
+int8_t moves_delta[140];                           // store all deltas of moves. Combine with the "move_index_invalid_since_move_counter" to only check the relevant indeces.
+uint8_t move_index_invalid_since_move_counter[140]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
 uint8_t player_winner_index;
 
 int8_t move_history_deltas_without_jumps[RECORD_MOVES_HISTORY_LENGTH]; // contains the delta change for every move
@@ -46,8 +46,7 @@ void game_init(void)
 
     for (uint8_t i = 0; i < MOVE_INDEX_COUNT; i++)
     {
-        move_indeces_valid_for_current_board[i] = 1;
-        // moves_delta[i] = 0;
+        move_index_invalid_since_move_counter[i] = MOVE_INDEX_VALID;
     }
     graph_init();
 
@@ -85,7 +84,7 @@ uint8_t get_player_won(uint8_t player)
 
 uint8_t get_move_index_valid(uint8_t move_index)
 {
-    return move_indeces_valid_for_current_board[move_index];
+    return (move_index_invalid_since_move_counter[move_index] == MOVE_INDEX_VALID);
 }
 
 uint8_t get_walls_placed(uint8_t player)
@@ -166,14 +165,14 @@ void analyse_possible_moves_walls()
                 pawn_get_position_as_node_index(1));
 
             moves_delta[i] = delta;
-            move_indeces_valid_for_current_board[i] = (delta != PAWN_TARGET_NOT_REACHABLE);
+
+            if (delta == PAWN_TARGET_NOT_REACHABLE){
+                move_index_invalid_since_move_counter[i] = move_counter-1; // -1 because we're already analysing for the next move while this is still a remnant fromt he previous one
+            }
 
             graph_wall_remove(i);
         }
     }
-
-    // break
-    ;
 }
 
 void analyse_possible_moves_pawn(uint8_t player)
@@ -183,10 +182,16 @@ void analyse_possible_moves_pawn(uint8_t player)
     {
         uint8_t valid;
         valid = check_move_possible_pawn(move_index, get_playing_player());
-        move_indeces_valid_for_current_board[move_index] = valid;
+        
 
-        if (valid)
+        if (!valid)
         {
+            moves_delta[move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
+            move_index_invalid_since_move_counter[move_index] = move_counter;
+        }else{
+            move_index_invalid_since_move_counter[move_index] = MOVE_INDEX_VALID;
+        
+
             // calculate delta for the given move.
 
             // the pawn is not moved. This is just looking at the nodes.
@@ -229,10 +234,6 @@ void analyse_possible_moves_pawn(uint8_t player)
                 }
             }
             moves_delta[move_index] = delta;
-        }
-        else
-        {
-            moves_delta[move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
         }
     }
 }
@@ -286,7 +287,7 @@ void make_move(uint8_t move_index)
     // it will ASSERT error at invalid moves.
 
     // check if move is in the possible moves list
-    if (!move_indeces_valid_for_current_board[move_index])
+    if (move_index_invalid_since_move_counter[move_index] != MOVE_INDEX_VALID)
     {
         raise_error(ERROR_NOT_A_VALID_MOVE_ON_THIS_BOARD);
     }
@@ -546,8 +547,9 @@ uint8_t make_move_wall(uint8_t player, uint8_t move_index)
     graph_wall_add(move_index);
 
     // delete invalid moves from the valid moves list.
-    move_indeces_valid_for_current_board[move_index] = 0;
-    moves_delta[move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
+    // move_index_invalid_since_move_counter[move_index] = move_counter;
+    // moves_delta[move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
+    delete_wall_move_from_valid_moves(wall_row_col_dir[0], wall_row_col_dir[1], wall_row_col_dir[2]);
 
     if (wall_row_col_dir[2])
     {
@@ -616,7 +618,7 @@ void delete_wall_move_from_valid_moves(uint8_t row, uint8_t col, uint8_t dir){
 
     uint8_t invalid_move_index;
     invalid_move_index = row_col_dir_to_move_index(row_col_dir);
-    move_indeces_valid_for_current_board[invalid_move_index] = 0;
+    move_index_invalid_since_move_counter[invalid_move_index] = move_counter;
     moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
 }
 
