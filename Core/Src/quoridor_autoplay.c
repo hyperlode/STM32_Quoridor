@@ -7,13 +7,16 @@ uint8_t end_of_game;
 
 uint8_t autoplay_move_type;
 uint8_t autoplay_L2_valid_move_indeces [MOVE_INDEX_COUNT];
+uint8_t volatile  autoplay_L2_valid_move_indeces_with_best_L1_move [MOVE_INDEX_COUNT];
+uint8_t volatile  autoplay_L2_valid_move_expected_delta [MOVE_INDEX_COUNT];
+
 
 uint8_t autoplay_init()
 {
     end_of_game = 0;
 }
 
-uint8_t autoplay_execute_next_move()
+uint8_t autoplay_execute_next_move(uint8_t level)
 {
     if (end_of_game)
     {
@@ -28,7 +31,7 @@ uint8_t autoplay_execute_next_move()
         best_move_index == MOVE_INDEX_DUMMY ||
         !get_move_index_valid(best_move_index)) // database move cannot be trusted. Check for validity.
     {
-        best_move_index = autoplay_get_best_next_move(get_playing_player());
+        best_move_index = autoplay_get_best_next_move(get_playing_player(), level);
         autoplay_move_type = AUTOPLAY_MOVE_TYPE_CALCULATED_LEVEL_1;
     }
 
@@ -46,47 +49,93 @@ uint8_t auto_play_get_move_from_opening_database()
     opening_next_move_suggestion();
 }
 
-uint8_t autoplay_get_best_next_move(uint8_t player){
+uint8_t autoplay_get_best_next_move(uint8_t player, uint8_t depth){
     
-    return autoplay_get_best_next_move_L1(player);
+    switch (depth){
+
+    case 1:
+    {
+
+        return autoplay_get_best_next_move_L1(player);
+        break;
+    }
+    case 2:
+    {
+    
+        return autoplay_get_best_next_move_L2(player);
+        break;
+    }
+    default:
+    {
+        return autoplay_get_best_next_move_L1(player);
+        break;
+    }
+    }
 
 }
 
-// uint8_t autoplay_get_best_next_move_L2(uint8_t player){
+uint8_t autoplay_get_best_next_move_L2(uint8_t player){
 
-//     // copy valid moves
-//     uint8_t L2_move_count = get_all_valid_move_indeces(autoplay_L2_valid_move_indeces);
+    // copy valid moves
+    uint8_t L2_move_count = get_all_valid_move_indeces(autoplay_L2_valid_move_indeces);
 
-//     for (uint8_t L2_i = 0; L2_i<L2_move_count; L2_i++){
+    uint8_t equal_delta_moves [MOVE_INDEX_COUNT];
+    uint8_t equal_delta_moves_count = 0;
+    // l2 means, we're looking at the opponent. We're looking for the least bad move the opponent can make. 
+    // this is: at the opponents move: a good delta for it is as high as possible. We need that delta to be as small as possible. so +127 is worst case scenario
+    int8_t result_delta = 127; 
+
+    for (uint8_t L2_i = 0; L2_i<L2_move_count; L2_i++){
         
-//         int8_t total_move_delta = get_delta_of_move_index_normalized(L2_i);
-
-//         make_move(autoplay_L2_valid_move_indeces[L2_i]);
-//         get_get
+       // int8_t total_move_delta = get_delta_of_move_index_normalized(L2_i);
+        uint8_t L2_move_index = autoplay_L2_valid_move_indeces[L2_i];
+        make_move(L2_move_index);
         
-//         // this is the opponent playing
-//         uint8_t best_L1_move = autoplay_get_best_next_move_L1(get_playing_player());
+        // get_get
+        // this is the opponent playing
+        int8_t best_opponent_delta;
+        uint8_t best_L1_move = autoplay_get_best_next_move_L1_with_delta(get_playing_player(), &best_opponent_delta);
+        autoplay_L2_valid_move_indeces_with_best_L1_move[L2_i] = best_L1_move;
+
+        // delta needs to be as small as possible because, we're looking for the opponent move with the least overal damage.
+        // basically, the BEST response of the opponent needs to be as bad as possible
+        if (best_opponent_delta < result_delta){
+            result_delta = best_opponent_delta;
+            equal_delta_moves_count = 0;
+            equal_delta_moves[equal_delta_moves_count] = L2_move_index;
+            equal_delta_moves_count++;
+
+        }else if (best_opponent_delta == result_delta){
+            equal_delta_moves[equal_delta_moves_count] = L2_move_index;
+            equal_delta_moves_count ++;
+        }
+
+        undo_last_move();
+    }
 
 
-//     }
     
-//     // for all valid moves:
-//         // make move
-//         // for all valid moves
-//             // make move
-//             // get delta and store if improved
-//             // undo move
-//         // undo move
+    // for all valid moves:
+        // make move
+        // for all valid moves
+            // make move
+            // get delta and store if improved
+            // undo move
+        // undo move
 
-//     // get all best deltas and moves. 
+    // get all best deltas and moves. 
 
-//     // analyse L1 deltas 
-//     // make move and display.
+    // analyse L1 deltas 
+    // make move and display.
+    uint8_t rand_index;
+    rand_index = rand() % equal_delta_moves_count;
+
+    return equal_delta_moves[rand_index];
+    
 
 
 
-
-// }
+}
 
 
 void autoplay_get_next_move_equal_deltas(uint8_t player, int8_t* equal_delta_moves, uint8_t* r_equal_delta_moves_count, uint8_t* r_pawn_moves_count, int8_t* r_best_delta)
@@ -163,6 +212,15 @@ void autoplay_get_next_move_equal_deltas(uint8_t player, int8_t* equal_delta_mov
 
 uint8_t autoplay_get_best_next_move_L1(uint8_t player)
 {
+    int8_t best_delta;
+    return autoplay_get_best_next_move_L1_with_delta(player, best_delta);
+
+}
+
+
+
+uint8_t autoplay_get_best_next_move_L1_with_delta(uint8_t player, int8_t* r_best_delta)
+{
     uint8_t equal_delta_moves[MOVE_INDEX_COUNT];
     uint8_t equal_delta_moves_count;
     uint8_t  pawn_moves_count;
@@ -189,5 +247,10 @@ uint8_t autoplay_get_best_next_move_L1(uint8_t player)
         rand_index = rand() % equal_delta_moves_count;
     }
 
+    * r_best_delta = delta;
     return equal_delta_moves[rand_index];
 }
+
+// uint8_t pick_move_from_move_indeces(move_indeces, move_indeces_count, pawn_moves_count){
+
+// }

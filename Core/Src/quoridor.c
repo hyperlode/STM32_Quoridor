@@ -305,11 +305,13 @@ void quoridor_computer_vs_computer_manager(uint8_t north, uint8_t east, uint8_t 
 
         if (!auto_play_single_step_mode || north || south || east)
         {
-            if (game_counter == 37 && get_move_counter() > 19){
-                ;
-            }
+            if (north){
+                autoplay_execute_next_move(2);
 
-            autoplay_execute_next_move();
+            }else{
+                autoplay_execute_next_move(1);
+
+            }
             if (get_winner_index() != NO_WINNER)
             {
                 game_counter++;
