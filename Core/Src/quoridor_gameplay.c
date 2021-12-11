@@ -12,8 +12,9 @@ static Player players[2];
 
 uint8_t moves_indeces[MAX_MOVES_COUNT];
 
-int8_t moves_delta[MOVE_INDEX_COUNT];                            // store all deltas of moves. Combine with the "move_index_invalid_since_move_counter" to only check the relevant indeces.
-uint8_t move_index_invalid_since_move_counter[MOVE_INDEX_COUNT]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
+int8_t moves_delta[MOVE_INDEX_COUNT];                            // store all deltas of moves. Combine with the "move_index_invalidity_score" to only check the relevant indeces.
+// uint8_t move_index_invalid_since_move_counter[MOVE_INDEX_COUNT]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
+uint8_t move_index_invalidity_score[MOVE_INDEX_COUNT]; // move possible=0 , not possible>0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
 uint8_t player_winner_index;
 
 int8_t move_history_deltas_without_jumps[RECORD_MOVES_HISTORY_LENGTH]; // contains the delta change for every move
@@ -48,7 +49,7 @@ void game_init(void)
 
     for (uint8_t i = 0; i < MOVE_INDEX_COUNT; i++)
     {
-        move_index_invalid_since_move_counter[i] = MOVE_INDEX_VALID;
+        move_index_invalidity_score[i] = MOVE_INDEX_VALID;
     }
     graph_init();
 
@@ -86,7 +87,7 @@ uint8_t get_player_won(uint8_t player)
 
 uint8_t get_move_index_valid(uint8_t move_index)
 {
-    return (move_index_invalid_since_move_counter[move_index] == MOVE_INDEX_VALID);
+    return (move_index_invalidity_score[move_index] == MOVE_INDEX_VALID);
 }
 
 uint8_t get_walls_placed(uint8_t player)
@@ -170,7 +171,7 @@ void analyse_possible_moves_walls()
 
             if (delta == PAWN_TARGET_NOT_REACHABLE)
             {
-                move_index_invalid_since_move_counter[i] = move_counter - 1; // -1 because we're already analysing for the next move while this is still a remnant fromt he previous one. aka only when the previous move is removed, this ban may be lifted
+                move_index_invalidity_score[i] ++; // -1 because we're already analysing for the next move while this is still a remnant fromt he previous one. aka only when the previous move is removed, this ban may be lifted
             }
 
             graph_wall_remove(i);
@@ -189,11 +190,11 @@ void analyse_possible_moves_pawn(uint8_t player)
         if (!valid)
         {
             moves_delta[move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
-            move_index_invalid_since_move_counter[move_index] = move_counter;
+            move_index_invalidity_score[move_index] = 1;
         }
         else
         {
-            move_index_invalid_since_move_counter[move_index] = MOVE_INDEX_VALID;
+            move_index_invalidity_score[move_index] = MOVE_INDEX_VALID;
 
             // calculate delta for the given move.
 
@@ -290,7 +291,7 @@ void make_move(uint8_t move_index)
     // it will ASSERT error at invalid moves.
 
     // check if move is in the possible moves list
-    if (move_index_invalid_since_move_counter[move_index] != MOVE_INDEX_VALID)
+    if (move_index_invalidity_score[move_index] != MOVE_INDEX_VALID)
     {
         raise_error(ERROR_NOT_A_VALID_MOVE_ON_THIS_BOARD);
     }
@@ -333,6 +334,11 @@ void make_move(uint8_t move_index)
 void undo_last_move()
 {
 
+    // do not undo if no moves yet
+    if (move_counter ==0){
+        return ;
+    }
+
     // get move index
     uint8_t previous_move_counter = move_counter - 1;
     uint8_t previous_player = previous_move_counter % 2;
@@ -355,14 +361,8 @@ void undo_last_move()
         pop_last_placed_wall(previous_player, row_col_dir);
         graph_wall_remove(previous_move_index);
 
-        // set back validities
-        for (uint8_t i = 0; i < MOVE_INDEX_COUNT; i++)
-        {
-            if (move_index_invalid_since_move_counter[i] >= previous_move_counter)
-            {
-                move_index_invalid_since_move_counter[i] = MOVE_INDEX_VALID;
-            }
-        }
+        // set back validities of affected wall positions 
+        adjust_affected_walls_validity_scores(previous_move_index, 0);
     }
 
     move_counter--;
@@ -569,8 +569,8 @@ uint8_t check_move_possible_pawn_L_jump(player, start_node, direction_1, directi
 
 uint8_t make_move_wall(uint8_t player, uint8_t move_index)
 {
-    uint8_t wall_row_col_dir[3];
 
+    uint8_t wall_row_col_dir[3];
     if (players[player].walls_placed >= 10)
     {
         //raise_error(ERROR_NO_MORE_WALLS_LEFT);
@@ -581,10 +581,23 @@ uint8_t make_move_wall(uint8_t player, uint8_t move_index)
     set_wall_by_row_col(player, wall_row_col_dir[0], wall_row_col_dir[1], wall_row_col_dir[2]);
     graph_wall_add(move_index);
 
-    // delete invalid moves from the valid moves list.
-    // move_index_invalid_since_move_counter[move_index] = move_counter;
-    // moves_delta[move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
-    delete_wall_move_from_valid_moves(wall_row_col_dir[0], wall_row_col_dir[1], wall_row_col_dir[2]);
+    adjust_affected_walls_validity_scores(move_index, 1);
+
+}
+
+
+void adjust_affected_walls_validity_scores(uint8_t move_index, uint8_t add_wall_else_delete){
+
+
+// void delete_all_affected_wall_moves_from_valid_moves(move_index){
+
+    uint8_t wall_row_col_dir[3];
+    move_index_to_row_col_dir(move_index, wall_row_col_dir);
+    adjust_wall_invalidity_score(
+        wall_row_col_dir[0],
+        wall_row_col_dir[1],
+        wall_row_col_dir[2],
+        add_wall_else_delete);
 
     if (wall_row_col_dir[2])
     {
@@ -592,24 +605,27 @@ uint8_t make_move_wall(uint8_t player, uint8_t move_index)
         // inline neighbour
         if (wall_row_col_dir[1] < 8)
         {
-            delete_wall_move_from_valid_moves(
+            adjust_wall_invalidity_score(
                 wall_row_col_dir[0],
                 wall_row_col_dir[1] + 1,
-                1);
+                1,
+                add_wall_else_delete);
         }
         // inline neighbour
         if (wall_row_col_dir[1] > 1)
         {
-            delete_wall_move_from_valid_moves(
+            adjust_wall_invalidity_score(
                 wall_row_col_dir[0],
                 wall_row_col_dir[1] - 1,
-                1);
+                1,
+                add_wall_else_delete);
         }
         // cut through neighbour
-        delete_wall_move_from_valid_moves(
+        adjust_wall_invalidity_score(
             wall_row_col_dir[0],
             wall_row_col_dir[1],
-            0);
+            0,
+            add_wall_else_delete);
     }
     else
     {
@@ -618,33 +634,36 @@ uint8_t make_move_wall(uint8_t player, uint8_t move_index)
         // inline neighbour
         if (wall_row_col_dir[0] < 8)
         {
-            delete_wall_move_from_valid_moves(
+            adjust_wall_invalidity_score(
                 wall_row_col_dir[0] + 1,
                 wall_row_col_dir[1],
-                0);
+                0,
+                add_wall_else_delete);
         }
 
         // inline neighbour
         if (wall_row_col_dir[0] > 1)
         {
-            delete_wall_move_from_valid_moves(
+            adjust_wall_invalidity_score(
                 wall_row_col_dir[0] - 1,
                 wall_row_col_dir[1],
-                0);
+                0,
+                add_wall_else_delete);
         }
 
         // cut through neighbour
-        delete_wall_move_from_valid_moves(
+        adjust_wall_invalidity_score(
             wall_row_col_dir[0],
             wall_row_col_dir[1],
-            1);
+            1,
+            add_wall_else_delete);
     }
-
-    return 1;
 };
 
-void delete_wall_move_from_valid_moves(uint8_t row, uint8_t col, uint8_t dir)
-{
+void adjust_wall_invalidity_score(uint8_t row, uint8_t col, uint8_t dir, uint8_t increase_invalidity_else_decrease)
+{   
+    // increase_invalidity_else_decrease > 0: if a wall is added, it decreases the invalidity score 
+    // increase_invalidity_else_decrease == 0: if a wall is deleted (undo), it decreases the invalidity score (it might not be zero, because other walls might prevent neighbour move_indeces becoming valid)
 
     uint8_t row_col_dir[3];
     row_col_dir[0] = row;
@@ -653,7 +672,17 @@ void delete_wall_move_from_valid_moves(uint8_t row, uint8_t col, uint8_t dir)
 
     uint8_t invalid_move_index;
     invalid_move_index = row_col_dir_to_move_index(row_col_dir);
-    move_index_invalid_since_move_counter[invalid_move_index] = move_counter;
+
+    if (increase_invalidity_else_decrease){
+        move_index_invalidity_score[invalid_move_index]++;
+
+    }else{
+        if (move_index_invalidity_score[invalid_move_index] > 0){
+            move_index_invalidity_score[invalid_move_index]--;
+
+        }
+
+    }
     moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
 }
 
