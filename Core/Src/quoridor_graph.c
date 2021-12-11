@@ -79,9 +79,6 @@ void move_index_to_node_indeces(uint8_t move_index, uint8_t *node_indeces)
         node_indeces[1] = base_node_index - 1;
         node_indeces[2] = base_node_index - 9;
         node_indeces[3] = base_node_index - 1 - 9;
-        // node_indeces[1] = base_node_index + 1;
-        // node_indeces[2] = base_node_index - 9;
-        // node_indeces[3] = base_node_index + 1 - 9;
     }
 }
 

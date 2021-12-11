@@ -47,17 +47,17 @@ void menu_display_ingame(uint8_t active_item){
     
     ssd1306_Fill(White);    
     ssd1306_SetCursor(5, 4);
-    ssd1306_WriteString("In Game Menu", Font_7x10, Black);
+    ssd1306_WriteString("Back with Toggle ", Font_7x10, Black);
 
 
     ssd1306_SetCursor(15, 20);
-    ssd1306_WriteString("Give up", Font_7x10, Black);
+    ssd1306_WriteString("Back to game", Font_7x10, Black);
   
     ssd1306_SetCursor(15, 34);
-    ssd1306_WriteString("(Machine Hint)", Font_7x10, Black);
+    ssd1306_WriteString("Undo last move", Font_7x10, Black);
   
     ssd1306_SetCursor(15, 48);
-    ssd1306_WriteString("Back with Toggle ", Font_7x10, Black);
+    ssd1306_WriteString("Give up", Font_7x10, Black);
     
     board_draw_pawn_row_col(active_item * 2 + 1, 0 , 1);
 

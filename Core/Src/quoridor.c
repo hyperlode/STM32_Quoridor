@@ -122,9 +122,23 @@ void quoridor_menu_ingame(uint8_t north, uint8_t east, uint8_t south, uint8_t we
     {
         switch (menu_ingame_active_item)
         {
+        case 0:
+        {
+            //program_state = STATE_PROGRAM_MENU_GAMETYPE_INIT;
+            // give up
+            program_state = STATE_PROGRAM_MENU_GAMETYPE_INIT;
+            break;
+        }
+        case 1:
+        {
+            // undo
+            quoridor_state = STATE_QUORIDOR_UNDO_TURN;
+            break;
+        }
         case 2:
         {
-            program_state = STATE_PROGRAM_MENU_GAMETYPE_INIT;
+            // return to game
+            human_set_state(STATE_MOVE_PAWN);
             break;
         }
         default:
@@ -209,6 +223,16 @@ void quoridor_human_vs_human_manager(uint8_t north, uint8_t east, uint8_t south,
         quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
         break;
     }
+    case (STATE_QUORIDOR_UNDO_TURN):
+    {
+        undo_last_move();
+        quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
+        // quoridor_state = STATE_QUORIDOR_HUMAN_TURN;
+        human_set_state(STATE_MOVE_PAWN);
+        break;
+    }
+
+
     case (STATE_QUORIDOR_HUMAN_TURN_INIT):
     {
         human_turn_init();
@@ -279,10 +303,10 @@ void quoridor_computer_vs_computer_manager(uint8_t north, uint8_t east, uint8_t 
     case (STATE_QUORIDOR_COMPUTER_TURN):
     {
 
-        if (!auto_play_single_step_mode || north || south || east || west)
+        if (!auto_play_single_step_mode || north || south || east)
         {
             if (game_counter == 37 && get_move_counter() > 19){
-                 game_counter++;
+                ;
             }
 
             autoplay_execute_next_move();
@@ -297,6 +321,11 @@ void quoridor_computer_vs_computer_manager(uint8_t north, uint8_t east, uint8_t 
             }
             board_set_move_type(autoplay_get_move_type());
         }
+        
+        if (west){
+            undo_last_move();
+        }
+
         display_game_state();
         break;
     }

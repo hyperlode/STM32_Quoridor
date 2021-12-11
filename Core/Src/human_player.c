@@ -244,6 +244,11 @@ uint8_t human_get_state()
 {
     return state_play_mode;
 }
+void human_set_state(uint8_t play_state)
+{
+    state_play_mode = play_state;
+}
+
 void human_button_press(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
 {
     if (toggle)

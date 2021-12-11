@@ -14,6 +14,7 @@ _BEGIN_STD_C
 
 // static uint8_t toNorthWinner_all_games[516][50] = {
 
+uint8_t opening_update_game_move(uint8_t last_played_move_index, uint8_t move_counter_in_game);
 static uint8_t allGames_to_north_won_and_lost[2][516][50] = 
 {
 {	{0,2,0,2,0,2,32,55,121,53,30,116,28,112,105,73,64,71,62,69,66,132,1,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255}, 
