@@ -361,6 +361,17 @@ void quoridor_human_vs_computer_manager(uint8_t north, uint8_t east, uint8_t sou
         quoridor_state = STATE_QUORIDOR_HUMAN_TURN;
         break;
     }
+    case (STATE_QUORIDOR_UNDO_TURN):
+    {
+        // we want to undo the last HUMAN turn. which also undoes the computer's move
+        undo_last_move();
+        undo_last_move();
+        quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
+        // quoridor_state = STATE_QUORIDOR_HUMAN_TURN;
+        human_set_state(STATE_MOVE_PAWN);
+        break;
+    }
+
     case (STATE_QUORIDOR_HUMAN_TURN_END):
     {
         if (get_winner_index() != NO_WINNER)
