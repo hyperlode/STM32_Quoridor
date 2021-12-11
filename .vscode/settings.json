@@ -13,7 +13,8 @@
         "quoridor.h": "c",
         "quoridor_tests.h": "c",
         "human_player.h": "c",
-        "quoridor_config.h": "c"
+        "quoridor_config.h": "c",
+        "quoridor_autoplay.h": "c"
     },
     "cortex-debug.armToolchainPath": "E:\\TOOLS\\PROGRAMMING\\GNU ARM EMBEDDED TOOLCHAIN\\10 2020-Q4-MAJOR\\BIN",
     "cortex-debug.openocdPath": "E:\\TOOLS\\PROGRAMMING\\STM32 TOOLCHAIN\\OPENOCD-20210729\\OPENOCD-20210729-0.11.0\\BIN\\OPENOCD.EXE"

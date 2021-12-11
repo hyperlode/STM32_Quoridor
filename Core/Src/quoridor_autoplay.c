@@ -6,6 +6,7 @@
 uint8_t end_of_game;
 
 uint8_t autoplay_move_type;
+uint8_t autoplay_L2_valid_move_indeces [MOVE_INDEX_COUNT];
 
 uint8_t autoplay_init()
 {
@@ -51,33 +52,58 @@ uint8_t autoplay_get_best_next_move(uint8_t player){
 
 }
 
-uint8_t autoplay_get_best_next_move_L2(uint8_t player){
-    // for all valid moves:
+// uint8_t autoplay_get_best_next_move_L2(uint8_t player){
+
+//     // copy valid moves
+//     uint8_t L2_move_count = get_all_valid_move_indeces(autoplay_L2_valid_move_indeces);
+
+//     for (uint8_t L2_i = 0; L2_i<L2_move_count; L2_i++){
         
-        // make move
-        // check L1 for opponent and store deltas
-        // undo move
+//         int8_t total_move_delta = get_delta_of_move_index_normalized(L2_i);
 
-    // analyse L1 deltas
+//         make_move(autoplay_L2_valid_move_indeces[L2_i]);
+//         get_get
+        
+//         // this is the opponent playing
+//         uint8_t best_L1_move = autoplay_get_best_next_move_L1(get_playing_player());
 
 
-}
+//     }
+    
+//     // for all valid moves:
+//         // make move
+//         // for all valid moves
+//             // make move
+//             // get delta and store if improved
+//             // undo move
+//         // undo move
 
-uint8_t autoplay_get_best_next_move_L1(uint8_t player)
+//     // get all best deltas and moves. 
+
+//     // analyse L1 deltas 
+//     // make move and display.
+
+
+
+
+// }
+
+
+void autoplay_get_next_move_equal_deltas(uint8_t player, int8_t* equal_delta_moves, uint8_t* r_equal_delta_moves_count, uint8_t* r_pawn_moves_count, int8_t* r_best_delta)
 {
     // from board state, get distances for all possible moves.
 
     // deltas are normalized for the current player. Meaning: higher delta is better. positive delta = winning.
 
-    int8_t best_delta;
+    //int8_t best_delta;
 
-    best_delta = -127; // worst as init
+    int8_t best_delta = -127; // worst as init
 
     // draws
     // index of draws
-    uint8_t equal_delta_moves[MOVE_INDEX_COUNT];
+    // uint8_t equal_delta_moves[MOVE_INDEX_COUNT];
     uint8_t equal_delta_moves_count = 0;
-    uint8_t number_of_pawn_moves = 0;
+    uint8_t pawn_moves_count = 0;
     uint8_t moves_to_investigate_count;
 
     // get best moves
@@ -111,11 +137,11 @@ uint8_t autoplay_get_best_next_move_L1(uint8_t player)
 
                 if (move_index < MOVE_INDEX_FIRST_WALL)
                 {
-                    number_of_pawn_moves = 1;
+                    pawn_moves_count = 1;
                 }
                 else
                 {
-                    number_of_pawn_moves = 0;
+                    pawn_moves_count = 0;
                 }
             }
             else if (delta == best_delta)
@@ -124,15 +150,28 @@ uint8_t autoplay_get_best_next_move_L1(uint8_t player)
                 equal_delta_moves_count++;
                 if (move_index < MOVE_INDEX_FIRST_WALL)
                 {
-                    number_of_pawn_moves++;
+                    pawn_moves_count++;
                 }
             }
         }
     }
 
+    *r_equal_delta_moves_count= equal_delta_moves_count;
+    *r_pawn_moves_count = pawn_moves_count;
+    *r_best_delta = best_delta;
+}
+
+uint8_t autoplay_get_best_next_move_L1(uint8_t player)
+{
+    uint8_t equal_delta_moves[MOVE_INDEX_COUNT];
+    uint8_t equal_delta_moves_count;
+    uint8_t  pawn_moves_count;
+    int8_t delta;
+    
+    autoplay_get_next_move_equal_deltas(player, equal_delta_moves, &equal_delta_moves_count, &pawn_moves_count, &delta );
+
     // choose a move
     uint8_t rand_index;
-
 
     uint8_t wall_aggressiveness = COMPUTER_PLAYER_AGRESSIVENESS_EAGERNESS_TO_PLAY_WALL;
 
@@ -140,10 +179,10 @@ uint8_t autoplay_get_best_next_move_L1(uint8_t player)
 
     prioritizes_wall_over_pawn = rand() % 100 < wall_aggressiveness;
 
-    if (number_of_pawn_moves > 0 && !prioritizes_wall_over_pawn)
+    if (pawn_moves_count > 0 && !prioritizes_wall_over_pawn)
     {
         // prioritize pawn moves over wall placement if equal delta.
-        rand_index = rand() % number_of_pawn_moves;
+        rand_index = rand() % pawn_moves_count;
     }
     else
     {

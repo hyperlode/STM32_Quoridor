@@ -10,7 +10,7 @@
 static uint8_t move_counter;
 static Player players[2];
 
-uint8_t moves_indeces[MAX_MOVES_COUNT];
+//uint8_t moves_indeces[MAX_MOVES_COUNT];
 
 int8_t moves_delta[MOVE_INDEX_COUNT]; // store all deltas of moves. Combine with the "move_index_invalidity_score" to only check the relevant indeces.
 // uint8_t move_index_invalid_since_move_counter[MOVE_INDEX_COUNT]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
@@ -21,6 +21,7 @@ int8_t move_history_deltas_without_jumps[RECORD_MOVES_HISTORY_LENGTH]; // contai
 uint8_t game_history_moves_indeces[RECORD_MOVES_HISTORY_LENGTH];       // contains all moves of a game by move_index
 
 uint8_t move_indeces_to_reversed[12] = {2, 3, 0, 1, 6, 7, 4, 5, 11, 10, 9, 8};
+
 
 void game_init(void)
 {
@@ -83,6 +84,25 @@ uint8_t get_player_won(uint8_t player)
         return row_col[0] == 8;
     }
     return 0;
+}
+
+uint8_t  get_all_valid_move_indeces(uint8_t* valid_move_indeces){
+    // provide an array of MOVE_INDEX_COUNT length
+
+    uint8_t valid_move_indeces_counter = 0;
+    for (uint8_t i=0;i<MOVE_INDEX_COUNT;i++){
+
+        if (get_move_index_valid(i)){
+            valid_move_indeces[valid_move_indeces_counter] = i;
+            valid_move_indeces_counter++;
+        }
+    }
+
+    for (uint8_t i=valid_move_indeces_counter; i<MOVE_INDEX_COUNT;i++ ){
+        valid_move_indeces[i] = MOVE_INDEX_DUMMY;
+    }
+
+    return valid_move_indeces_counter;
 }
 
 uint8_t get_move_index_valid(uint8_t move_index)
