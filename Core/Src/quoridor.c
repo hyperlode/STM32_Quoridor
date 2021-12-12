@@ -150,7 +150,12 @@ void quoridor_menu_ingame(uint8_t north, uint8_t east, uint8_t south, uint8_t we
 
     if (menu_ingame_display_update)
     {
-        menu_display_ingame(menu_ingame_active_item);
+        char title [] = "Back with Toggle ";
+        char item_0 []  = "Back to game";
+        char item_1 [] = "Undo last move";
+        char item_2 [] = "Give up";
+
+        menu_display_3_items(menu_ingame_active_item,title, item_0, item_1, item_2);
     }
     menu_ingame_display_update = 0;
 }
@@ -207,7 +212,13 @@ void quoridor_menu_gameplay(uint8_t north, uint8_t east, uint8_t south, uint8_t 
 
     if (menu_display_update)
     {
-        menu_display(menu_active_item);
+
+        char title [] = "Pick your fight";
+        char item_0 []  = "Human vs Machine";
+        char item_1 [] = "Human battle";
+        char item_2 [] = "Machine battle";
+
+        menu_display_3_items(menu_active_item,title, item_0, item_1, item_2);
     }
     menu_display_update = 0;
 }
