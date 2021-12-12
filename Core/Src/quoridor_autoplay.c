@@ -84,6 +84,7 @@ uint8_t autoplay_get_best_next_move_L2(uint8_t player){
     // l2 means, we're looking at the opponent. We're looking for the least bad move the opponent can make. 
     // this is: at the opponents move: a good delta for it is as high as possible. We need that delta to be as small as possible. so +127 is worst case scenario
     int8_t result_delta = 127; 
+    uint8_t pawn_moves_count = 0;
 
     for (uint8_t L2_i = 0; L2_i<L2_move_count; L2_i++){
         
@@ -104,10 +105,22 @@ uint8_t autoplay_get_best_next_move_L2(uint8_t player){
             equal_delta_moves_count = 0;
             equal_delta_moves[equal_delta_moves_count] = L2_move_index;
             equal_delta_moves_count++;
+            if (L2_move_index < MOVE_INDEX_FIRST_WALL)
+            {
+                pawn_moves_count = 1;
+            }
+            else
+            {
+                pawn_moves_count = 0;
+            }
 
         }else if (best_opponent_delta == result_delta){
             equal_delta_moves[equal_delta_moves_count] = L2_move_index;
             equal_delta_moves_count ++;
+            if (L2_move_index < MOVE_INDEX_FIRST_WALL)
+            {
+                pawn_moves_count++;
+            }
         }
 
         undo_last_move();
@@ -127,13 +140,11 @@ uint8_t autoplay_get_best_next_move_L2(uint8_t player){
 
     // analyse L1 deltas 
     // make move and display.
-    uint8_t rand_index;
-    rand_index = rand() % equal_delta_moves_count;
+    // uint8_t rand_index;
+    // rand_index = rand() % equal_delta_moves_count;
 
-    return equal_delta_moves[rand_index];
-    
-
-
+    uint8_t wall_aggressiveness = COMPUTER_PLAYER_AGRESSIVENESS_EAGERNESS_TO_PLAY_WALL;
+    return pick_move_from_move_indeces(equal_delta_moves, equal_delta_moves_count, pawn_moves_count, wall_aggressiveness);
 
 }
 
@@ -229,9 +240,35 @@ uint8_t autoplay_get_best_next_move_L1_with_delta(uint8_t player, int8_t* r_best
     autoplay_get_next_move_equal_deltas(player, equal_delta_moves, &equal_delta_moves_count, &pawn_moves_count, &delta );
 
     // choose a move
+    // uint8_t rand_index;
+    uint8_t picked_move_index;
+    uint8_t wall_aggressiveness = COMPUTER_PLAYER_AGRESSIVENESS_EAGERNESS_TO_PLAY_WALL;
+
+
+    picked_move_index = pick_move_from_move_indeces(equal_delta_moves, equal_delta_moves_count,pawn_moves_count, wall_aggressiveness);
+
+    // uint8_t prioritizes_wall_over_pawn;
+
+    // prioritizes_wall_over_pawn = rand() % 100 < wall_aggressiveness;
+
+    // if (pawn_moves_count > 0 && !prioritizes_wall_over_pawn)
+    // {
+    //     // prioritize pawn moves over wall placement if equal delta.
+    //     rand_index = rand() % pawn_moves_count;
+    // }
+    // else
+    // {
+    //     rand_index = rand() % equal_delta_moves_count;
+    // }
+
+    * r_best_delta = delta;
+    return picked_move_index;
+}
+
+uint8_t pick_move_from_move_indeces(uint8_t* move_indeces, uint8_t move_indeces_count, uint8_t pawn_moves_count, uint8_t wall_aggressiveness){
     uint8_t rand_index;
 
-    uint8_t wall_aggressiveness = COMPUTER_PLAYER_AGRESSIVENESS_EAGERNESS_TO_PLAY_WALL;
+    // uint8_t wall_aggressiveness = COMPUTER_PLAYER_AGRESSIVENESS_EAGERNESS_TO_PLAY_WALL;
 
     uint8_t prioritizes_wall_over_pawn;
 
@@ -244,13 +281,8 @@ uint8_t autoplay_get_best_next_move_L1_with_delta(uint8_t player, int8_t* r_best
     }
     else
     {
-        rand_index = rand() % equal_delta_moves_count;
+        rand_index = rand() % move_indeces_count;
     }
 
-    * r_best_delta = delta;
-    return equal_delta_moves[rand_index];
+    return move_indeces[rand_index];
 }
-
-// uint8_t pick_move_from_move_indeces(move_indeces, move_indeces_count, pawn_moves_count){
-
-// }
