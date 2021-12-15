@@ -24,6 +24,9 @@ uint8_t game_counter;
 
 uint8_t auto_play_single_step_mode;
 
+uint8_t loaded_game_history_moves_indeces[RECORD_MOVES_HISTORY_LENGTH];
+uint8_t loaded_game_history_moves_indeces_length;
+
 void quoridor_display_game_with_error_code(uint8_t error_code)
 {
     board_set_error(error_code);
@@ -40,6 +43,8 @@ void quoridor_init()
 
     function_pointer = &quoridor_display_game_with_error_code;
     quoridor_error_set_callback(function_pointer);
+
+
 }
 
 void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
@@ -138,7 +143,10 @@ void quoridor_menu_ingame(uint8_t north, uint8_t east, uint8_t south, uint8_t we
         case 2:
         {
             // return to game
+            //human_set_state(STATE_MOVE_PAWN);
+            autoplay_execute_next_move(2);
             human_set_state(STATE_MOVE_PAWN);
+
             break;
         }
         default:
@@ -151,7 +159,8 @@ void quoridor_menu_ingame(uint8_t north, uint8_t east, uint8_t south, uint8_t we
     if (menu_ingame_display_update)
     {
         char title [] = "Back with Toggle ";
-        char item_0 []  = "Back to game";
+        char item_0 []  = "L2 move";
+        // char item_0 []  = "Back to game";
         char item_1 [] = "Undo last move";
         char item_2 [] = "Give up";
 
@@ -223,13 +232,20 @@ void quoridor_menu_gameplay(uint8_t north, uint8_t east, uint8_t south, uint8_t 
     menu_display_update = 0;
 }
 
+void quoridor_lode_load_game_history_as_one_string(char* moves_as_notation_one_string, uint8_t history_length)
+{
+    // provide as lode notation, will store as move_indeces
+    moves_string_to_moves_indeces(moves_as_notation_one_string, loaded_game_history_moves_indeces);
+    loaded_game_history_moves_indeces_length = history_length;
+}
+
 void quoridor_human_vs_human_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
 {
     switch (quoridor_state)
     {
     case (STATE_QUORIDOR_INIT):
     {
-        game_init();
+        game_init(loaded_game_history_moves_indeces, loaded_game_history_moves_indeces_length);
         display_game_state();
         quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
         break;
@@ -297,7 +313,7 @@ void quoridor_computer_vs_computer_manager(uint8_t north, uint8_t east, uint8_t 
     {
     case (STATE_QUORIDOR_INIT):
     {
-        game_init();
+         game_init(NULL, 0);
         autoplay_init();
         display_game_state();
         quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_INIT;
@@ -363,7 +379,7 @@ void quoridor_human_vs_computer_manager(uint8_t north, uint8_t east, uint8_t sou
     {
     case (STATE_QUORIDOR_INIT):
     {
-        game_init();
+        game_init(NULL, 0);
         display_game_state();
         quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
         break;
@@ -486,19 +502,19 @@ void quoridor_human_interaction(uint8_t north, uint8_t east, uint8_t south, uint
     }
 }
 
-void replay_game_init(moves_lode_notation)
-{
-    // provide string of moves "N,S,4e"
-    game_init();
-    load_game_by_notation_one_string(moves_lode_notation);
-    display_game_state();
-}
+// void replay_game_init(char* moves_lode_notation, uint8_t moves_history_length)
+// {
+//     // provide string of moves "N,S,4e"
+//     game_init(moves_lode_notation, moves_history_length);
+   
+//     display_game_state();
+// }
 
-void replay_game_next_move()
-{
-    next_move_loaded_game();
-    display_game_state();
-}
+// void replay_game_next_move()
+// {
+//     next_move_loaded_game();
+//     display_game_state();
+// }
 
 void display_game_state()
 {

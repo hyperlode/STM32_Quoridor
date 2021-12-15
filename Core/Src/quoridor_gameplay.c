@@ -7,24 +7,28 @@
 #include "quoridor_notation.h"
 #include "quoridor_games_database.h"
 
-static uint8_t move_counter;
 static Player players[2];
 
 //uint8_t moves_indeces[MAX_MOVES_COUNT];
 
 int8_t moves_delta[MOVE_INDEX_COUNT]; // store all deltas of moves. Combine with the "move_index_invalidity_score" to only check the relevant indeces.
-// uint8_t move_index_invalid_since_move_counter[MOVE_INDEX_COUNT]; // move possible=1 , not possible = 0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
 uint8_t move_index_invalidity_score[MOVE_INDEX_COUNT]; // move possible=0 , not possible>0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
+// uint8_t move_index_invalid_since_move[MOVE_INDEX_COUNT];
+uint8_t move_index_invalid_no_exit[MOVE_INDEX_COUNT];
 uint8_t player_winner_index;
 
 int8_t move_history_deltas_without_jumps[RECORD_MOVES_HISTORY_LENGTH]; // contains the delta change for every move
+
 uint8_t game_history_moves_indeces[RECORD_MOVES_HISTORY_LENGTH];       // contains all moves of a game by move_index
+static uint8_t move_counter;
 
 uint8_t move_indeces_to_reversed[12] = {2, 3, 0, 1, 6, 7, 4, 5, 11, 10, 9, 8};
 
 
-void game_init(void)
+void game_init(char* load_game_history_moves_indeces, uint8_t load_game_moves_count)
 {
+    // load game in lode notation
+
     players[0].pawn.row = 0;
     players[0].pawn.col = 4;
     players[0].walls_placed = 0;
@@ -51,13 +55,24 @@ void game_init(void)
     for (uint8_t i = 0; i < MOVE_INDEX_COUNT; i++)
     {
         move_index_invalidity_score[i] = MOVE_INDEX_VALID;
+        move_index_invalid_no_exit[i] = MOVE_INDEX_VALID;
+        // move_index_invalid_since_move[i] = MOVE_INDEX_VALID_MOVE_INFINITY;
     }
     graph_init();
+
+
+
 
     move_counter = 0;
     opening_initiate_next_move_handler();
     analyse_possible_moves(get_playing_player()); // player is 0 at init.
     player_winner_index = NO_WINNER;
+
+    // load game
+    for (uint8_t i=0;i<load_game_moves_count;i++){
+        make_move(load_game_history_moves_indeces[i]);
+    }
+
 }
 
 uint8_t get_winner_index()
@@ -107,7 +122,10 @@ uint8_t  get_all_valid_move_indeces(uint8_t* valid_move_indeces){
 
 uint8_t get_move_index_valid(uint8_t move_index)
 {
-    return (move_index_invalidity_score[move_index] == MOVE_INDEX_VALID);
+    uint8_t move_physically_possible_on_board = move_index_invalidity_score[move_index] == MOVE_INDEX_VALID;
+    uint8_t move_not_preventing_pawn_from_winning = move_index_invalid_no_exit[move_index] == MOVE_INDEX_VALID;
+
+    return (move_physically_possible_on_board && move_not_preventing_pawn_from_winning);
 }
 
 uint8_t get_walls_placed(uint8_t player)
@@ -191,7 +209,12 @@ void analyse_possible_moves_walls()
 
             if (delta == PAWN_TARGET_NOT_REACHABLE)
             {
-                move_index_invalidity_score[i]++; // -1 because we're already analysing for the next move while this is still a remnant fromt he previous one. aka only when the previous move is removed, this ban may be lifted
+
+                move_index_invalid_no_exit[i] = MOVE_INDEX_INVALID;
+                //move_index_invalidity_score[i]++; 
+                //move_index_invalid_since_move [i] = move_counter - 1; //move_counter -1 because we're already analysing for the next move while this is still a remnant fromt he previous one. aka only when the previous move is removed, this ban may be lifted
+            }else{
+                move_index_invalid_no_exit[i] = MOVE_INDEX_VALID;
             }
 
             graph_wall_remove(i);
@@ -267,16 +290,13 @@ uint8_t get_move_counter()
     return move_counter;
 }
 
-void load_game_by_notation_one_string(moves_as_notation_one_string)
-{
-    moves_string_to_moves_indeces(moves_as_notation_one_string, game_history_moves_indeces);
-}
 
-void next_move_loaded_game(void)
-{
-    uint8_t move_index = game_history_moves_indeces[move_counter];
-    make_move(move_index);
-};
+
+// void next_move_loaded_game(void)
+// {
+//     uint8_t move_index = game_history_moves_indeces[move_counter];
+//     make_move(move_index);
+// };
 
 uint8_t make_move_if_valid(uint8_t move_index)
 {
@@ -382,11 +402,29 @@ void undo_last_move()
 
         // set back validities of affected wall positions
         adjust_affected_walls_validity_scores(previous_move_index, 0);
+
+        
+
+
+        // // undo "invalidity due to complete block"
+        // for (uint8_t i=0;i<MOVE_INDEX_COUNT;i++){
+        //     if (move_counter == move_index_invalid_since_move[i] ){
+        //         if (move_index_invalidity_score[i] >0){
+        //             move_index_invalidity_score[i] --;
+
+        //         }else{
+        //             // ASSERT ERROR: how did a move index become invalid at a certain move if it's actually indicated as valid? 
+        //             raise_error(ERROR_INCONSISTENCY_IN_INVALID_MOVE_DUE_TO_NO_EXIT);
+        //         }
+        //         move_index_invalid_since_move[i] = MOVE_INDEX_VALID_MOVE_INFINITY;
+        //     }
+        // }
     }
 
+    
     move_history_deltas_without_jumps[move_counter] = 0;
     move_counter--;
-
+    
     // reset opening database searcher
     opening_initiate_next_move_handler_from_game_moves(game_history_moves_indeces, move_counter);
     analyse_possible_moves(get_playing_player());

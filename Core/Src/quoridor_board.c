@@ -41,30 +41,6 @@ void oled_init(){
     error_type = ERROR_NO_ERROR;
 }
 
-// void menu_display_ingame(uint8_t active_item){
-
-//         // max 
-    
-//     ssd1306_Fill(White);    
-//     ssd1306_SetCursor(5, 4);
-//     ssd1306_WriteString("Back with Toggle ", Font_7x10, Black);
-
-
-//     ssd1306_SetCursor(15, 20);
-//     ssd1306_WriteString("Back to game", Font_7x10, Black);
-  
-//     ssd1306_SetCursor(15, 34);
-//     ssd1306_WriteString("Undo last move", Font_7x10, Black);
-  
-//     ssd1306_SetCursor(15, 48);
-//     ssd1306_WriteString("Give up", Font_7x10, Black);
-    
-//     board_draw_pawn_row_col(active_item * 2 + 1, 0 , 1);
-
-//     ssd1306_UpdateScreen();
-
-// }
-
 void menu_display_3_items(uint8_t active_item, char* title, char* item_0, char* item_1, char* item_2){
     // max 
     ssd1306_Fill(White);    

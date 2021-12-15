@@ -127,7 +127,9 @@ int main(void)
     //char moves_lode_notation [MOVES_STRING_LENGTH] = "h1,N,S,N,S,N,S,N,SS,a2,h3";
     //char moves_lode_notation [MOVES_STRING_LENGTH] = "2b,d2,N,S,N,S,N,S,N,SS,a2,h3";
 
+    quoridor_lode_load_game_history_as_one_string(moves_lode_notation, 21);
     quoridor_init();
+
     while (1)
     {
 

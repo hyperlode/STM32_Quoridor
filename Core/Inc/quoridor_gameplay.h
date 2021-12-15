@@ -4,7 +4,8 @@
 #include <_ansi.h>
 
 _BEGIN_STD_C
-void game_init(void);
+
+void game_init(char* load_game_history, uint8_t load_game_moves_count);
 
 uint8_t get_winner_index();
 int8_t *get_move_history_deltas_without_jumps();
@@ -24,8 +25,8 @@ void analyse_possible_moves(uint8_t player);
 void analyse_possible_moves_walls();
 void analyse_possible_moves_pawn(uint8_t player);
 
-void load_game_by_notation_one_string(moves_as_notation_one_string);
-void next_move_loaded_game(void);
+//void load_game_by_notation_one_string(moves_as_notation_one_string);
+// void next_move_loaded_game(void);
 
 uint8_t make_move_if_valid(uint8_t move_index);
 void make_move(uint8_t move_index);
