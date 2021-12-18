@@ -9,11 +9,20 @@ uint8_t autoplay_move_type;
 uint8_t autoplay_L2_valid_move_indeces [MOVE_INDEX_COUNT];
 uint8_t volatile  autoplay_L2_valid_move_indeces_with_best_L1_move [MOVE_INDEX_COUNT];
 uint8_t volatile  autoplay_L2_valid_move_expected_delta [MOVE_INDEX_COUNT];
+void(*callback_display_time_function_pointer)(uint8_t);
 
+
+void autoplay_get_cursor(uint8_t* cursor_pawn_row_col){
+    pawn_get_position_as_row_col(cursor_pawn_row_col, get_playing_player());
+}
 
 uint8_t autoplay_init()
 {
     // end_of_game = 0;
+}
+
+void autoplay_display_time_callback( void(*functionPointer)(uint8_t)){
+    callback_display_time_function_pointer = functionPointer;
 }
 
 uint8_t autoplay_execute_next_move(uint8_t level)
@@ -87,6 +96,10 @@ uint8_t autoplay_get_best_next_move_L2(uint8_t player){
     uint8_t pawn_moves_count = 0;
 
     for (uint8_t L2_i = 0; L2_i<L2_move_count; L2_i++){
+        
+        
+        float tmp = 1.0f * L2_i/L2_move_count;
+        callback_display_time_function_pointer((uint8_t) (tmp * 100)  );
         
        // int8_t total_move_delta = get_delta_of_move_index_normalized(L2_i);
         uint8_t L2_move_index = autoplay_L2_valid_move_indeces[L2_i];

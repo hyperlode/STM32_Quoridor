@@ -32,10 +32,13 @@ static uint8_t move_type;
 static uint8_t error_type;
 int8_t *move_history_deltas;
 
+static uint8_t time_bar_percentage_completed;
+
 void oled_init()
 {
     ssd1306_Init();
     error_type = ERROR_NO_ERROR;
+    time_bar_percentage_completed = 100;
 }
 
 void menu_display_3_items(uint8_t active_item, char *title, char *item_0, char *item_1, char *item_2)
@@ -83,6 +86,16 @@ void board_set_error(uint8_t error_typerrr)
     error_type = error_typerrr;
 }
 
+void board_set_time_bar_percentage_completed(uint8_t percentagearg)
+{
+
+    time_bar_percentage_completed = percentagearg;
+}
+
+void board_hide_cursor(){
+    cursor_pawn_row = CURSOR_NOT_SHOWN;
+    cursor_pawn_col = CURSOR_NOT_SHOWN;
+}
 void board_set_cursor(uint8_t *row_col)
 {
     cursor_pawn_row = row_col[0];
@@ -248,6 +261,38 @@ void board_draw_error_type()
     }
 }
 
+void board_draw_time_bar()
+{
+    // float tmp = 1.0f * BOARD_Y_MAX / 100 * (100 - time_bar_percentage_completed);
+    float tmp = (1.0f * BOARD_Y_MAX / 100) * time_bar_percentage_completed;
+    uint8_t bar_length = (uint8_t) tmp;
+
+    // percentage to bar length 
+      ssd1306_Line(
+        BOARD_X_MAX ,
+        0,
+        BOARD_X_MAX ,
+        bar_length ,
+        Black);
+
+    // // double width
+    //   ssd1306_Line(
+    //     BOARD_X_MAX-1 ,
+    //     0,
+    //     BOARD_X_MAX-1 ,
+    //     bar_length ,
+    //     Black);
+    // double width
+      ssd1306_Line(
+        BOARD_X_MAX-1 ,
+        0,
+        BOARD_X_MAX-1 ,
+        BOARD_Y_MAX ,
+        Black);
+
+
+}
+
 void board_draw_move_type()
 {
     switch (move_type)
@@ -299,6 +344,9 @@ void board_state_draw()
     board_draw_cursor_wall();
     board_draw_move_type();
     board_draw_error_type();
+    if ( time_bar_percentage_completed != 100){
+        board_draw_time_bar();
+    }
 
     board_draw_outline(); // save for last to overwrite wall placement white dots.
 
