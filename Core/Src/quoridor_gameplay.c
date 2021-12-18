@@ -9,11 +9,8 @@
 
 static Player players[2];
 
-//uint8_t moves_indeces[MAX_MOVES_COUNT];
-
 int8_t moves_delta[MOVE_INDEX_COUNT];                  // store all deltas of moves. Combine with the "move_index_invalidity_score" to only check the relevant indeces.
 uint8_t move_index_invalidity_score[MOVE_INDEX_COUNT]; // move possible=0 , not possible>0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
-// uint8_t move_index_invalid_since_move[MOVE_INDEX_COUNT];
 uint8_t move_index_invalid_noExit_or_outOfWalls[MOVE_INDEX_COUNT];
 uint8_t player_winner_index;
 
@@ -213,11 +210,12 @@ void analyse_possible_moves_walls(uint8_t player)
 
     if (players[player].walls_placed >= PLAYER_MAX_WALL_COUNT)
     {
-        for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++){
-             move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_INVALID;
+        for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++)
+        {
+            move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_INVALID;
         }
 
-        return ;
+        return;
     }
 
     for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++)

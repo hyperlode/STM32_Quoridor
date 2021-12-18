@@ -395,10 +395,10 @@ void quoridor_computer_vs_computer_manager(uint8_t north, uint8_t east, uint8_t 
     }
     case (STATE_QUORIDOR_FINISHED):
     {
-        // if (enter)
-        // {
+        if (enter)
+        {
         quoridor_state = STATE_QUORIDOR_INIT;
-        // }
+        }
 
         break;
     }
