@@ -14,7 +14,7 @@ static Player players[2];
 int8_t moves_delta[MOVE_INDEX_COUNT];                  // store all deltas of moves. Combine with the "move_index_invalidity_score" to only check the relevant indeces.
 uint8_t move_index_invalidity_score[MOVE_INDEX_COUNT]; // move possible=0 , not possible>0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
 // uint8_t move_index_invalid_since_move[MOVE_INDEX_COUNT];
-uint8_t move_index_invalid_no_exit[MOVE_INDEX_COUNT];
+uint8_t move_index_invalid_noExit_or_outOfWalls[MOVE_INDEX_COUNT];
 uint8_t player_winner_index;
 
 int8_t move_history_deltas_without_jumps[RECORD_MOVES_HISTORY_LENGTH]; // contains the delta change for every move
@@ -38,11 +38,11 @@ void game_init(char *load_game_history_moves_indeces, uint8_t load_game_moves_co
 
     for (uint8_t player = 0; player < 2; player++)
     {
-        for (uint8_t i = 0; i < 10; i++)
+        for (uint8_t i = 0; i < PLAYER_MAX_WALL_COUNT; i++)
         {
-            players[player].walls[i].row = 0;
-            players[player].walls[i].col = 0;
-            players[player].walls[i].horizontal_else_vertical = 0;
+            players[player].walls[i].row = WALL_NOT_PLACED;
+            players[player].walls[i].col = WALL_NOT_PLACED;
+            players[player].walls[i].horizontal_else_vertical = WALL_NOT_PLACED;
         }
     }
 
@@ -54,7 +54,7 @@ void game_init(char *load_game_history_moves_indeces, uint8_t load_game_moves_co
     for (uint8_t i = 0; i < MOVE_INDEX_COUNT; i++)
     {
         move_index_invalidity_score[i] = MOVE_INDEX_VALID;
-        move_index_invalid_no_exit[i] = MOVE_INDEX_VALID;
+        move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_VALID;
         // move_index_invalid_since_move[i] = MOVE_INDEX_VALID_MOVE_INFINITY;
     }
     graph_init();
@@ -137,7 +137,7 @@ uint8_t get_all_valid_move_indeces(uint8_t *valid_move_indeces)
 uint8_t get_move_index_valid(uint8_t move_index)
 {
     uint8_t move_physically_possible_on_board = move_index_invalidity_score[move_index] == MOVE_INDEX_VALID;
-    uint8_t move_not_preventing_pawn_from_winning = move_index_invalid_no_exit[move_index] == MOVE_INDEX_VALID;
+    uint8_t move_not_preventing_pawn_from_winning = move_index_invalid_noExit_or_outOfWalls[move_index] == MOVE_INDEX_VALID;
 
     return (move_physically_possible_on_board && move_not_preventing_pawn_from_winning);
 }
@@ -204,11 +204,22 @@ uint8_t get_best_pawn_move()
 void analyse_possible_moves(uint8_t player)
 {
     analyse_possible_moves_pawn(player);
-    analyse_possible_moves_walls();
+    analyse_possible_moves_walls(player);
 }
 
-void analyse_possible_moves_walls()
+void analyse_possible_moves_walls(uint8_t player)
 {
+    // does player still have walls?
+
+    if (players[player].walls_placed >= PLAYER_MAX_WALL_COUNT)
+    {
+        for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++){
+             move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_INVALID;
+        }
+
+        return ;
+    }
+
     for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++)
     {
         if (get_move_index_valid(i))
@@ -224,13 +235,13 @@ void analyse_possible_moves_walls()
             if (delta == PAWN_TARGET_NOT_REACHABLE)
             {
 
-                move_index_invalid_no_exit[i] = MOVE_INDEX_INVALID;
+                move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_INVALID;
                 //move_index_invalidity_score[i]++;
                 //move_index_invalid_since_move [i] = move_counter - 1; //move_counter -1 because we're already analysing for the next move while this is still a remnant fromt he previous one. aka only when the previous move is removed, this ban may be lifted
             }
             else
             {
-                move_index_invalid_no_exit[i] = MOVE_INDEX_VALID;
+                move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_VALID;
             }
 
             graph_wall_remove(i);
@@ -330,7 +341,7 @@ uint8_t make_move_if_valid(uint8_t move_index)
     }
     if (move_index >= MOVE_INDEX_FIRST_WALL)
     {
-        if (players[get_playing_player()].walls_placed >= 10)
+        if (players[get_playing_player()].walls_placed >= PLAYER_MAX_WALL_COUNT)
         {
             return 0;
         }
@@ -648,10 +659,10 @@ uint8_t make_move_wall(uint8_t player, uint8_t move_index)
 {
 
     uint8_t wall_row_col_dir[3];
-    if (players[player].walls_placed >= 10)
+    if (players[player].walls_placed >= PLAYER_MAX_WALL_COUNT)
     {
-        //raise_error(ERROR_NO_MORE_WALLS_LEFT);
-        return 0;
+        raise_error(ERROR_NO_MORE_WALLS_LEFT);
+        //return 0;
     }
 
     move_index_to_row_col_dir(move_index, wall_row_col_dir);
@@ -822,15 +833,15 @@ void pop_last_placed_wall(uint8_t player, uint8_t *row_col_dir)
     row_col_dir[1] = players[player].walls[players[player].walls_placed].col;
     row_col_dir[2] = players[player].walls[players[player].walls_placed].horizontal_else_vertical;
 
-    players[player].walls[players[player].walls_placed].row = 0;
-    players[player].walls[players[player].walls_placed].col = 0;
-    players[player].walls[players[player].walls_placed].horizontal_else_vertical = 0;
+    players[player].walls[players[player].walls_placed].row = WALL_NOT_PLACED;
+    players[player].walls[players[player].walls_placed].col = WALL_NOT_PLACED;
+    players[player].walls[players[player].walls_placed].horizontal_else_vertical = WALL_NOT_PLACED;
 }
 
 void walls_get_all_positions(uint8_t *positions, uint8_t player)
 {
     // mainly for an output situation to the graphics display
-    for (uint8_t i = 0; i < 10; i++)
+    for (uint8_t i = 0; i < PLAYER_MAX_WALL_COUNT; i++)
     {
         positions[i * 3 + 0] = players[player].walls[i].row;
         positions[i * 3 + 1] = players[player].walls[i].col;

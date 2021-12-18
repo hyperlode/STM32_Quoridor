@@ -22,7 +22,7 @@ uint8_t get_best_pawn_move();
 uint8_t get_move_counter();
 
 void analyse_possible_moves(uint8_t player);
-void analyse_possible_moves_walls();
+void analyse_possible_moves_walls(uint8_t player);
 void analyse_possible_moves_pawn(uint8_t player);
 
 //void load_game_by_notation_one_string(moves_as_notation_one_string);
