@@ -43,8 +43,6 @@ void quoridor_init()
 
     function_pointer = &quoridor_display_game_with_error_code;
     quoridor_error_set_callback(function_pointer);
-
-
 }
 
 void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
@@ -160,7 +158,6 @@ void quoridor_menu_ingame(uint8_t north, uint8_t east, uint8_t south, uint8_t we
     {
         char title [] = "Back with Toggle ";
         char item_0 []  = "L2 move";
-        // char item_0 []  = "Back to game";
         char item_1 [] = "Undo last move";
         char item_2 [] = "Give up";
 
@@ -316,18 +313,18 @@ void quoridor_computer_vs_computer_manager(uint8_t north, uint8_t east, uint8_t 
          game_init(NULL, 0);
         autoplay_init();
         display_game_state();
-        quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_INIT;
+        quoridor_state = STATE_QUORIDOR_COMPUTER_L1_TURN_INIT;
         break;
     }
 
-    case (STATE_QUORIDOR_COMPUTER_TURN_INIT):
+    case (STATE_QUORIDOR_COMPUTER_L1_TURN_INIT):
     {
 
-        quoridor_state = STATE_QUORIDOR_COMPUTER_TURN;
+        quoridor_state = STATE_QUORIDOR_COMPUTER_L1_TURN;
 
         break;
     }
-    case (STATE_QUORIDOR_COMPUTER_TURN):
+    case (STATE_QUORIDOR_COMPUTER_L1_TURN):
     {
 
         if (!auto_play_single_step_mode || north || south || east)
@@ -346,7 +343,45 @@ void quoridor_computer_vs_computer_manager(uint8_t north, uint8_t east, uint8_t 
             }
             else
             {
-                quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_INIT;
+                quoridor_state = STATE_QUORIDOR_COMPUTER_L2_TURN_INIT;
+            }
+            board_set_move_type(autoplay_get_move_type());
+        }
+        
+        if (west){
+            undo_last_move();
+        }
+
+        display_game_state();
+        break;
+    }
+     case (STATE_QUORIDOR_COMPUTER_L2_TURN_INIT):
+    {
+
+        quoridor_state = STATE_QUORIDOR_COMPUTER_L2_TURN;
+
+        break;
+    }
+    case (STATE_QUORIDOR_COMPUTER_L2_TURN):
+    {
+
+        if (!auto_play_single_step_mode || north || south || east)
+        {
+            if (north){
+                autoplay_execute_next_move(2);
+
+            }else{
+                autoplay_execute_next_move(2);
+
+            }
+            if (get_winner_index() != NO_WINNER)
+            {
+                game_counter++;
+                quoridor_state = STATE_QUORIDOR_FINISHED;
+            }
+            else
+            {
+                quoridor_state = STATE_QUORIDOR_COMPUTER_L1_TURN_INIT;
             }
             board_set_move_type(autoplay_get_move_type());
         }
@@ -410,7 +445,7 @@ void quoridor_human_vs_computer_manager(uint8_t north, uint8_t east, uint8_t sou
         }
         else
         {
-            quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_INIT;
+            quoridor_state = STATE_QUORIDOR_COMPUTER_L1_TURN_INIT;
         }
 
         break;
@@ -421,14 +456,14 @@ void quoridor_human_vs_computer_manager(uint8_t north, uint8_t east, uint8_t sou
 
         break;
     }
-    case (STATE_QUORIDOR_COMPUTER_TURN_INIT):
+    case (STATE_QUORIDOR_COMPUTER_L1_TURN_INIT):
     {
 
-        quoridor_state = STATE_QUORIDOR_COMPUTER_TURN;
+        quoridor_state = STATE_QUORIDOR_COMPUTER_L1_TURN;
 
         break;
     }
-    case (STATE_QUORIDOR_COMPUTER_TURN):
+    case (STATE_QUORIDOR_COMPUTER_L1_TURN):
     {
 
         autoplay_execute_next_move();

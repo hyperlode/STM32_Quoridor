@@ -269,7 +269,7 @@ uint8_t graph_get_pawn_move_destination_node(uint8_t node_index, uint8_t move_in
     }
     else
     {
-        raise_error(ERROR_NOTATION_NOT_A_PAWN_MOVE);
+        raise_error(ERROR_NOTATION_NOT_A_PAWN_MOVE_FOR_DESTINATION_NODE);
     }
 }
 

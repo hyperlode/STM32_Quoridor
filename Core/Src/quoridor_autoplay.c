@@ -3,7 +3,7 @@
 #include "quoridor_gameplay.h"
 #include "quoridor_graph.h"
 
-uint8_t end_of_game;
+// uint8_t end_of_game;
 
 uint8_t autoplay_move_type;
 uint8_t autoplay_L2_valid_move_indeces [MOVE_INDEX_COUNT];
@@ -13,15 +13,15 @@ uint8_t volatile  autoplay_L2_valid_move_expected_delta [MOVE_INDEX_COUNT];
 
 uint8_t autoplay_init()
 {
-    end_of_game = 0;
+    // end_of_game = 0;
 }
 
 uint8_t autoplay_execute_next_move(uint8_t level)
 {
-    if (end_of_game)
-    {
-        raise_error(111);
-    }
+    // if (end_of_game)
+    // {
+    //     raise_error(ERROR_MOVING_WHILE_END_OF_GAME);
+    // }
 
     uint8_t best_move_index;
     best_move_index = auto_play_get_move_from_opening_database();
@@ -181,10 +181,10 @@ void autoplay_get_next_move_equal_deltas(uint8_t player, int8_t* equal_delta_mov
         int8_t delta;
         delta = get_delta_of_move_index_normalized(move_index);
 
-        if (delta == (DELTA_WINNING_MOVE_MAGNITUDE))
-        {
-            end_of_game = 1;
-        }
+        // if (delta == (DELTA_WINNING_MOVE_MAGNITUDE))
+        // {
+        //     end_of_game = 1;
+        // }
 
         if (delta != FAKE_DELTA_FOR_INVALID_MOVE)
         {
