@@ -123,11 +123,12 @@ int main(void)
 
     uint8_t button_pressed_edge_memory;
 
-    char moves_lode_notation[MOVES_STRING_LENGTH] = "N,S,N,S,N,S,2d,4d,2f,E,2b,a1,E,E,N,5f,E,E,2h,g4,c5,S,c3,N,c7,8b,3h,W,W,W,W,N,N,6d,f6,N,E,W,N,7e,W,N,W,8d,f8,W,N,W,E,W,E,W,N";
+    char moves_lode_notation[MOVES_STRING_LENGTH] = "N,S,1d,S,1f,S,1h,E,c1";
+    // char moves_lode_notation[MOVES_STRING_LENGTH] = "N,S,N,S,N,S,2d,4d,2f,E,2b,a1,E,E,N,5f,E,E,2h,g4,c5,S,c3,N,c7,8b,3h,W,W,W,W,N,N,6d,f6,N,E,W,N,7e,W,N,W,8d,f8,W,N,W,E,W,E,W,N";
     //char moves_lode_notation [MOVES_STRING_LENGTH] = "h1,N,S,N,S,N,S,N,SS,a2,h3";
     //char moves_lode_notation [MOVES_STRING_LENGTH] = "2b,d2,N,S,N,S,N,S,N,SS,a2,h3";
 
-    quoridor_lode_load_game_history_as_one_string(moves_lode_notation, 21);
+    quoridor_lode_load_game_history_as_one_string(moves_lode_notation, 9);
     quoridor_init();
 
     while (1)

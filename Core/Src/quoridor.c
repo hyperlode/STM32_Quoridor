@@ -211,7 +211,7 @@ void quoridor_menu_gameplay(uint8_t north, uint8_t east, uint8_t south, uint8_t 
         }
         case 0:
         {
-            players_types[0] = PLAYER_COMPUTER_L1;
+            players_types[0] = PLAYER_COMPUTER_L2;
             players_types[1] = PLAYER_COMPUTER_L1;
             quoridor_state = STATE_QUORIDOR_INIT;
             program_state = STATE_PROGRAM_GAME_PLAYING;
@@ -249,6 +249,7 @@ void quoridor_game_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
     case (STATE_QUORIDOR_INIT):
     {
         game_init(NULL, 0);
+        //game_init(loaded_game_history_moves_indeces, loaded_game_history_moves_indeces_length);
         quoridor_state = STATE_QUORIDOR_NEXT_PLAYER;
         break;
     }
@@ -401,10 +402,11 @@ void quoridor_game_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
     }
     case (STATE_QUORIDOR_FINISHED):
     {
-        game_counter++;
+        
         quoridor_display_game_with_time_bar_percentage(100);
         if (enter)
         {
+            game_counter++;
             quoridor_state = STATE_QUORIDOR_INIT;
         }
 

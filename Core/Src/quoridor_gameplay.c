@@ -210,6 +210,8 @@ void analyse_possible_moves_walls(uint8_t player)
 
     if (players[player].walls_placed >= PLAYER_MAX_WALL_COUNT)
     {
+        
+
         for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++)
         {
             move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_INVALID;
@@ -222,7 +224,7 @@ void analyse_possible_moves_walls(uint8_t player)
     // are there routes for both pawns to a winning square?
     for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++)
     {
-        if (get_move_index_valid(i))
+        if (move_index_invalidity_score[i] == MOVE_INDEX_VALID)
         {
             graph_wall_add(i);
             int8_t delta;
