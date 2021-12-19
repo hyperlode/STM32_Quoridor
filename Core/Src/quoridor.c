@@ -26,6 +26,7 @@ uint8_t auto_play_single_step_mode;
 
 uint8_t loaded_game_history_moves_indeces[RECORD_MOVES_HISTORY_LENGTH];
 uint8_t loaded_game_history_moves_indeces_length;
+uint8_t players_types[2];
 
 void quoridor_display_game_with_error_code(uint8_t error_code)
 {
@@ -52,6 +53,9 @@ void quoridor_init()
 
     function_pointer = &quoridor_display_game_with_time_bar_percentage;
     autoplay_display_time_callback(function_pointer);
+
+    players_types[0] = PLAYER_HUMAN;
+    players_types[1] = PLAYER_COMPUTER_L1;
 }
 
 void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
@@ -74,25 +78,12 @@ void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
         quoridor_menu_gameplay(north, east, south, west, enter, toggle);
         break;
     }
-    case STATE_PROGRAM_HUMAN_VS_COMPUTER:
+    case STATE_PROGRAM_GAME_PLAYING:
     {
-        quoridor_human_vs_computer_manager(north, east, south, west, enter, toggle);
+        quoridor_game_manager(north, east, south, west, enter, toggle);
         break;
     }
-    case STATE_PROGRAM_HUMAN_VS_HUMAN:
-    {
-        quoridor_human_vs_human_manager(north, east, south, west, enter, toggle);
-        break;
-    }
-    case STATE_PROGRAM_COMPUTER_VS_COMPUTER:
-    {
-        if (toggle)
-        {
-            program_state = STATE_PROGRAM_MENU_GAMETYPE_INIT;
-        }
-        quoridor_computer_vs_computer_manager(north, east, south, west, enter, toggle);
-        break;
-    }
+ 
     default:
     {
         break;
@@ -149,10 +140,9 @@ void quoridor_menu_ingame(uint8_t north, uint8_t east, uint8_t south, uint8_t we
         }
         case 2:
         {
-            // return to game
-            //human_set_state(STATE_MOVE_PAWN);
             autoplay_execute_next_move(2);
-            human_set_state(STATE_MOVE_PAWN);
+            // return to game
+            human_back_to_game();
 
             break;
         }
@@ -205,21 +195,26 @@ void quoridor_menu_gameplay(uint8_t north, uint8_t east, uint8_t south, uint8_t 
         {
         case 2:
         {
+            players_types[0] = PLAYER_HUMAN;
+            players_types[1] = PLAYER_COMPUTER_L2;
             quoridor_state = STATE_QUORIDOR_INIT;
-            program_state = STATE_PROGRAM_HUMAN_VS_COMPUTER;
+            program_state = STATE_PROGRAM_GAME_PLAYING;
             break;
         }
         case 1:
         {
+            players_types[0] = PLAYER_HUMAN;
+            players_types[1] = PLAYER_HUMAN;
             quoridor_state = STATE_QUORIDOR_INIT;
-            quoridor_state = STATE_QUORIDOR_INIT;
-            program_state = STATE_PROGRAM_HUMAN_VS_HUMAN;
+            program_state = STATE_PROGRAM_GAME_PLAYING;
             break;
         }
         case 0:
         {
+            players_types[0] = PLAYER_COMPUTER_L1;
+            players_types[1] = PLAYER_COMPUTER_L1;
             quoridor_state = STATE_QUORIDOR_INIT;
-            program_state = STATE_PROGRAM_COMPUTER_VS_COMPUTER;
+            program_state = STATE_PROGRAM_GAME_PLAYING;
             break;
         }
         }
@@ -245,130 +240,77 @@ void quoridor_lode_load_game_history_as_one_string(char *moves_as_notation_one_s
     loaded_game_history_moves_indeces_length = history_length;
 }
 
-void quoridor_human_vs_human_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
+////////////////////////////////////////////
+
+void quoridor_game_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
 {
     switch (quoridor_state)
     {
     case (STATE_QUORIDOR_INIT):
     {
-        game_init(loaded_game_history_moves_indeces, loaded_game_history_moves_indeces_length);
-        display_game_state();
-        quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
+        game_init(NULL, 0);
+        quoridor_state = STATE_QUORIDOR_NEXT_PLAYER;
         break;
     }
     case (STATE_QUORIDOR_UNDO_TURN):
     {
+        // // we want to undo the last HUMAN turn. which also undoes the computer's move
+        // undo_last_move();
+        // undo_last_move();
+        
+        
         undo_last_move();
-        quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
-        // quoridor_state = STATE_QUORIDOR_HUMAN_TURN;
-        human_set_state(STATE_MOVE_PAWN);
+        
+        quoridor_state = STATE_QUORIDOR_NEXT_PLAYER;
+        
         break;
     }
 
+    //////////////////// HUMAN
+    case (STATE_QUORIDOR_HUMAN_TURN_INIT):
+    {
+        human_turn_init();
+        quoridor_state = STATE_QUORIDOR_HUMAN_TURN;
+        quoridor_display_game_with_time_bar_percentage(100);
+        break;
+    }
     case (STATE_QUORIDOR_HUMAN_TURN):
     {
         quoridor_human_interaction(north, east, south, west, enter, toggle);
 
         break;
     }
-    case (STATE_QUORIDOR_HUMAN_TURN_INIT):
-    {
-        human_turn_init();
-        quoridor_state = STATE_QUORIDOR_HUMAN_TURN;
-        break;
-    }
     case (STATE_QUORIDOR_HUMAN_TURN_END):
     {
         hide_cursor();
-        if (get_winner_index() != NO_WINNER)
-        {
-            quoridor_state = STATE_QUORIDOR_FINISHED;
-            game_counter++;
-        }
-        else
-        {
-            quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
-        }
+        quoridor_state = STATE_QUORIDOR_TURN_FINISHED;
 
         break;
     }
 
-    case (STATE_QUORIDOR_FINISHED):
-    {
-        if (enter)
-        {
-            quoridor_state = STATE_QUORIDOR_INIT;
-        }
-
-        break;
-    }
-    default:
-    {
-    }
-    }
-}
-
-void quoridor_computer_vs_computer_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
-{
-    if (enter)
-    {
-        auto_play_single_step_mode = !auto_play_single_step_mode;
-    }
-
-    switch (quoridor_state)
-    {
-    case (STATE_QUORIDOR_INIT):
-    {
-        game_init(NULL, 0);
-        autoplay_init();
-        display_game_state();
-        quoridor_state = STATE_QUORIDOR_COMPUTER_L1_TURN_INIT;
-        break;
-    }
-
+    //////////////////// COMPUTER L1
     case (STATE_QUORIDOR_COMPUTER_L1_TURN_INIT):
     {
-
+        quoridor_display_game_with_time_bar_percentage(100);
         quoridor_state = STATE_QUORIDOR_COMPUTER_L1_TURN;
 
         break;
     }
     case (STATE_QUORIDOR_COMPUTER_L1_TURN):
     {
+        computer_emphasize_pawn();
 
-        if (!auto_play_single_step_mode || north || south || east)
-        {
-            if (north)
-            {
-                autoplay_execute_next_move(2);
-            }
-            else
-            {
-                autoplay_execute_next_move(1);
-            }
-            if (get_winner_index() != NO_WINNER)
-            {
-                game_counter++;
-                quoridor_state = STATE_QUORIDOR_FINISHED;
-            }
-            else
-            {
-                quoridor_state = STATE_QUORIDOR_COMPUTER_L2_TURN_INIT;
-            }
-            board_set_move_type(autoplay_get_move_type());
-        }
+        autoplay_execute_next_move(1);
 
-        if (west)
-        {
-            undo_last_move();
-        }
-
-        display_game_state();
+        quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_FINISHED;
+        
         break;
     }
+
+    //////////////////// COMPUTER L2
     case (STATE_QUORIDOR_COMPUTER_L2_TURN_INIT):
     {
-
+        quoridor_display_game_with_time_bar_percentage(100);
         quoridor_state = STATE_QUORIDOR_COMPUTER_L2_TURN;
 
         break;
@@ -382,129 +324,84 @@ void quoridor_computer_vs_computer_manager(uint8_t north, uint8_t east, uint8_t 
         {
             if (north)
             {
-                autoplay_execute_next_move(2);
+                autoplay_execute_next_move(1);
             }
             else
             {
                 autoplay_execute_next_move(2);
             }
-            if (get_winner_index() != NO_WINNER)
-            {
-                game_counter++;
-                quoridor_state = STATE_QUORIDOR_FINISHED;
-            }
-            else
-            {
-                quoridor_state = STATE_QUORIDOR_COMPUTER_L1_TURN_INIT;
-            }
-            board_set_move_type(autoplay_get_move_type());
         }
-
-        computer_deemphasize_pawn();
 
         if (west)
         {
             undo_last_move();
         }
 
+       
+        quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_FINISHED;
+
+
+        break;
+    }
+
+    case (STATE_QUORIDOR_COMPUTER_TURN_FINISHED):
+    {
+
+        quoridor_state = STATE_QUORIDOR_TURN_FINISHED;
+        board_set_move_type(autoplay_get_move_type());
+        computer_deemphasize_pawn();
         display_game_state();
-
-        break;
-    }
-    case (STATE_QUORIDOR_FINISHED):
-    {
-        if (enter)
-        {
-            quoridor_state = STATE_QUORIDOR_INIT;
-        }
-
-        break;
-    }
-    default:
-    {
-    }
-    }
-}
-
-void quoridor_human_vs_computer_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
-{
-    switch (quoridor_state)
-    {
-    case (STATE_QUORIDOR_INIT):
-    {
-        game_init(NULL, 0);
-        quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
-        break;
-    }
-    case (STATE_QUORIDOR_UNDO_TURN):
-    {
-        // we want to undo the last HUMAN turn. which also undoes the computer's move
-        undo_last_move();
-        undo_last_move();
-        quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
-        // quoridor_state = STATE_QUORIDOR_HUMAN_TURN;
-        human_set_state(STATE_MOVE_PAWN);
-        quoridor_display_game_with_time_bar_percentage(100);
         break;
     }
 
-    case (STATE_QUORIDOR_HUMAN_TURN_INIT):
+    case (STATE_QUORIDOR_TURN_FINISHED):
     {
-        human_turn_init();
-        quoridor_state = STATE_QUORIDOR_HUMAN_TURN;
-        quoridor_display_game_with_time_bar_percentage(100);
-        break;
-    }
-    case (STATE_QUORIDOR_HUMAN_TURN):
-    {
-        quoridor_human_interaction(north, east, south, west, enter, toggle);
-
-        break;
-    }
-    case (STATE_QUORIDOR_HUMAN_TURN_END):
-    {
-        hide_cursor();
         if (get_winner_index() != NO_WINNER)
         {
-            game_counter++;
+           
             quoridor_state = STATE_QUORIDOR_FINISHED;
         }
         else
         {
-            quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_INIT;
+            quoridor_state = STATE_QUORIDOR_NEXT_PLAYER;
         }
 
         break;
     }
-    case (STATE_QUORIDOR_COMPUTER_TURN_INIT):
-    {
-        quoridor_display_game_with_time_bar_percentage(100);
-        quoridor_state = STATE_QUORIDOR_COMPUTER_TURN;
 
-        break;
-    }
-    case (STATE_QUORIDOR_COMPUTER_TURN):
+    ///////////////// admin
+    case (STATE_QUORIDOR_NEXT_PLAYER):
     {
-        computer_emphasize_pawn();
+        uint8_t player_type = players_types[get_playing_player()];
 
-        autoplay_execute_next_move(1);
-        
-        if (get_winner_index() != NO_WINNER)
+        switch (player_type)
         {
-            quoridor_state = STATE_QUORIDOR_FINISHED;
-        }
-        else
+        case PLAYER_HUMAN:
         {
             quoridor_state = STATE_QUORIDOR_HUMAN_TURN_INIT;
+            break;
         }
-        board_set_move_type(autoplay_get_move_type());
-        // display_game_state();
-        computer_deemphasize_pawn();
-
+        case PLAYER_COMPUTER_L1:
+        {
+            quoridor_state = STATE_QUORIDOR_COMPUTER_L1_TURN_INIT;
+            break;
+        }
+        case PLAYER_COMPUTER_L2:
+        {
+            quoridor_state = STATE_QUORIDOR_COMPUTER_L2_TURN_INIT;
+            break;
+        }
+        default:
+        {
+            raise_error(ERROR_NON_VALID_PLAYER);
+            break;
+        }
+        }
         break;
     }
     case (STATE_QUORIDOR_FINISHED):
     {
+        game_counter++;
         quoridor_display_game_with_time_bar_percentage(100);
         if (enter)
         {
@@ -513,6 +410,7 @@ void quoridor_human_vs_computer_manager(uint8_t north, uint8_t east, uint8_t sou
 
         break;
     }
+
     default:
     {
     }
@@ -575,13 +473,16 @@ void quoridor_human_interaction(uint8_t north, uint8_t east, uint8_t south, uint
 //     display_game_state();
 // }
 
-void hide_cursor(){
+void hide_cursor()
+{
     board_hide_cursor();
 }
-void computer_deemphasize_pawn(){
+void computer_deemphasize_pawn()
+{
     hide_cursor();
 }
-void computer_emphasize_pawn(){
+void computer_emphasize_pawn()
+{
     uint8_t cursor_position[2];
     autoplay_get_cursor(cursor_position);
     board_set_cursor(cursor_position);

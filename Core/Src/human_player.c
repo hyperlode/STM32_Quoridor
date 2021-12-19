@@ -24,9 +24,14 @@ void human_turn_init()
     cursor_wall_row_col_dir[0] = 4;
     cursor_wall_row_col_dir[1] = 4;
 
-    state_play_mode = STATE_MOVE_PAWN;
+    human_back_to_game();
 }
 
+void human_back_to_game(){
+    // e.g. when returning from menu
+    human_set_state(STATE_MOVE_PAWN);
+
+}
 uint8_t human_commit_move()
 {
 
