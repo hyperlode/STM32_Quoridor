@@ -194,7 +194,7 @@ void autoplay_get_next_move_equal_deltas(uint8_t player, int8_t* equal_delta_mov
         int8_t delta;
         delta = get_delta_of_move_index_normalized(move_index);
 
-        // if (delta == (DELTA_WINNING_MOVE_MAGNITUDE))
+        // if (delta == (DELTA_MAX_WINNING_MOVE_MAGNITUDE))
         // {
         //     end_of_game = 1;
         // }
@@ -259,20 +259,6 @@ uint8_t autoplay_get_best_next_move_L1_with_delta(uint8_t player, int8_t* r_best
 
 
     picked_move_index = pick_move_from_move_indeces(equal_delta_moves, equal_delta_moves_count,pawn_moves_count, wall_aggressiveness);
-
-    // uint8_t prioritizes_wall_over_pawn;
-
-    // prioritizes_wall_over_pawn = rand() % 100 < wall_aggressiveness;
-
-    // if (pawn_moves_count > 0 && !prioritizes_wall_over_pawn)
-    // {
-    //     // prioritize pawn moves over wall placement if equal delta.
-    //     rand_index = rand() % pawn_moves_count;
-    // }
-    // else
-    // {
-    //     rand_index = rand() % equal_delta_moves_count;
-    // }
 
     * r_best_delta = delta;
     return picked_move_index;

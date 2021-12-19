@@ -95,6 +95,8 @@ void board_set_time_bar_percentage_completed(uint8_t percentagearg)
 void board_hide_cursor(){
     cursor_pawn_row = CURSOR_NOT_SHOWN;
     cursor_pawn_col = CURSOR_NOT_SHOWN;
+    cursor_wall_row_col_dir[0] = CURSOR_NOT_SHOWN;
+    cursor_wall_row_col_dir[1] = CURSOR_NOT_SHOWN;
 }
 void board_set_cursor(uint8_t *row_col)
 {

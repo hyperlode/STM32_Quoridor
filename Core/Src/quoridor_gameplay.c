@@ -218,6 +218,8 @@ void analyse_possible_moves_walls(uint8_t player)
         return;
     }
 
+    // what is the path delta for both players a when playing this move?
+    // are there routes for both pawns to a winning square?
     for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++)
     {
         if (get_move_index_valid(i))
@@ -234,8 +236,6 @@ void analyse_possible_moves_walls(uint8_t player)
             {
 
                 move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_INVALID;
-                //move_index_invalidity_score[i]++;
-                //move_index_invalid_since_move [i] = move_counter - 1; //move_counter -1 because we're already analysing for the next move while this is still a remnant fromt he previous one. aka only when the previous move is removed, this ban may be lifted
             }
             else
             {
@@ -272,21 +272,13 @@ void analyse_possible_moves_pawn(uint8_t player)
             uint8_t pawn_moved_node = graph_get_pawn_move_destination_node(player_node, move_index);
 
             int8_t delta = 0;
-            if (player)
+            if (player == PLAYER_TO_SOUTH)
             {
-                // to south (neg delta is better)
-                // for (uint8_t winning_node = 0; winning_node < 9; winning_node++)
-                // {
-                //     if (pawn_moved_node == winning_node)
-                //     {
-                //         delta = -1 * DELTA_WINNING_MOVE_MAGNITUDE;
-                //     }
-                // }
-
+                // pawn on winning node ?
                 if (pawn_moved_node <= 9)
                 {
 
-                    delta = -1 * DELTA_WINNING_MOVE_MAGNITUDE;
+                    delta = -1 * DELTA_MAX_WINNING_MOVE_MAGNITUDE;
                 }
                 else
                 {
@@ -297,16 +289,10 @@ void analyse_possible_moves_pawn(uint8_t player)
             }
             else
             {
-                // for (uint8_t winning_node = 72; winning_node < 81; winning_node++)
-                // {
-                //     if (pawn_moved_node == winning_node)
-                //     {
-                //         delta = DELTA_WINNING_MOVE_MAGNITUDE;
-                //     }
-                // }
+                // pawn on winning node?
                 if (pawn_moved_node >= 72)
                 {
-                    delta = DELTA_WINNING_MOVE_MAGNITUDE;
+                    delta = DELTA_MAX_WINNING_MOVE_MAGNITUDE;
                 }
                 else
                 {
@@ -399,7 +385,6 @@ void make_move(uint8_t move_index)
     // prepare for next move
     opening_update_game_move(move_index, move_counter);
     analyse_possible_moves(get_playing_player());
-    return;
 }
 
 void undo_last_move()

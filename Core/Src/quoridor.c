@@ -279,7 +279,7 @@ void quoridor_human_vs_human_manager(uint8_t north, uint8_t east, uint8_t south,
     }
     case (STATE_QUORIDOR_HUMAN_TURN_END):
     {
-        board_hide_cursor();
+        hide_cursor();
         if (get_winner_index() != NO_WINNER)
         {
             quoridor_state = STATE_QUORIDOR_FINISHED;
@@ -463,7 +463,7 @@ void quoridor_human_vs_computer_manager(uint8_t north, uint8_t east, uint8_t sou
     }
     case (STATE_QUORIDOR_HUMAN_TURN_END):
     {
-        board_hide_cursor();
+        hide_cursor();
         if (get_winner_index() != NO_WINNER)
         {
             game_counter++;
@@ -486,7 +486,9 @@ void quoridor_human_vs_computer_manager(uint8_t north, uint8_t east, uint8_t sou
     case (STATE_QUORIDOR_COMPUTER_TURN):
     {
         computer_emphasize_pawn();
-        autoplay_execute_next_move(2);
+
+        autoplay_execute_next_move(1);
+        
         if (get_winner_index() != NO_WINNER)
         {
             quoridor_state = STATE_QUORIDOR_FINISHED;
@@ -572,9 +574,12 @@ void quoridor_human_interaction(uint8_t north, uint8_t east, uint8_t south, uint
 //     next_move_loaded_game();
 //     display_game_state();
 // }
-void computer_deemphasize_pawn(){
-    board_hide_cursor();
 
+void hide_cursor(){
+    board_hide_cursor();
+}
+void computer_deemphasize_pawn(){
+    hide_cursor();
 }
 void computer_emphasize_pawn(){
     uint8_t cursor_position[2];
