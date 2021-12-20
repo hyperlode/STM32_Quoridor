@@ -196,7 +196,7 @@ void quoridor_menu_gameplay(uint8_t north, uint8_t east, uint8_t south, uint8_t 
         case 2:
         {
             players_types[0] = PLAYER_HUMAN;
-            players_types[1] = PLAYER_COMPUTER_L1;
+            players_types[1] = PLAYER_COMPUTER_L2;
             quoridor_state = STATE_QUORIDOR_INIT;
             program_state = STATE_PROGRAM_GAME_PLAYING;
             break;

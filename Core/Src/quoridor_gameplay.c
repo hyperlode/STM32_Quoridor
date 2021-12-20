@@ -117,7 +117,7 @@ uint8_t get_player_won(uint8_t player)
     return 0;
 }
 
-uint8_t get_all_valid_move_indeces(uint8_t *valid_move_indeces)
+void get_all_valid_move_indeces(uint8_t *valid_move_indeces, uint8_t* valid_move_indeces_counter_arg)
 {
     // provide an array of MOVE_INDEX_COUNT length
 
@@ -137,7 +137,8 @@ uint8_t get_all_valid_move_indeces(uint8_t *valid_move_indeces)
         valid_move_indeces[i] = MOVE_INDEX_DUMMY;
     }
 
-    return valid_move_indeces_counter;
+    //return valid_move_indeces_counter;
+    *valid_move_indeces_counter_arg = valid_move_indeces_counter;
 }
 
 uint8_t get_move_index_valid(uint8_t move_index)
