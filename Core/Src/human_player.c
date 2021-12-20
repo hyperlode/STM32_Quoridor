@@ -54,7 +54,7 @@ uint8_t human_commit_move_wall()
     uint8_t move_index = MOVE_INDEX_DUMMY;
     human_get_cursor_wall(wall_position);
 
-    move_index = row_col_dir_to_move_index(wall_position);
+    move_index = wall_row_col_dir_to_move_index(wall_position);
 
     return make_move_if_valid(move_index);
 }

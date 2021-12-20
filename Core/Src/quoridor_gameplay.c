@@ -92,6 +92,15 @@ int8_t *get_move_history_deltas_without_jumps()
 //     }
 // }
 
+uint8_t get_playing_player()
+{
+    return move_counter % 2;
+}
+uint8_t get_opponent(uint8_t player)
+{
+    return !player;
+}
+
 uint8_t get_player_won(uint8_t player)
 {
     // winner / end of game
@@ -197,6 +206,19 @@ uint8_t get_best_pawn_move()
         return best_move_index;
     }
 }
+
+void get_winning_distances(uint8_t *distances)
+{
+    distances[0] = graph_get_distance_to_winning_square(0, pawn_get_position_as_node_index(0));
+    distances[1] = graph_get_distance_to_winning_square(1, pawn_get_position_as_node_index(1));
+}
+
+
+
+
+////////////////////////
+//////////////// ANALYSE 
+////////////////////////
 
 void analyse_possible_moves(uint8_t player)
 {
@@ -318,6 +340,12 @@ uint8_t get_move_counter()
 //     uint8_t move_index = game_history_moves_indeces[move_counter];
 //     make_move(move_index);
 // };
+
+
+////////////////////////
+//////////////// MAKE MOVE
+////////////////////////
+
 
 uint8_t make_move_if_valid(uint8_t move_index)
 {
@@ -446,14 +474,9 @@ void undo_last_move()
     analyse_possible_moves(get_playing_player());
 }
 
-uint8_t get_playing_player()
-{
-    return move_counter % 2;
-}
-uint8_t get_opponent(uint8_t player)
-{
-    return !player;
-}
+////////////////////////
+//////////////// PAWN ACTIONS
+////////////////////////
 
 uint8_t check_move_possible_pawn(uint8_t move_index, uint8_t player)
 {
@@ -515,7 +538,7 @@ uint8_t check_move_possible_pawn_orthogonal_jump(uint8_t move_index, uint8_t pla
 {
 
     // Only pawn moves allowed
-    // if (move_index >= 4)
+    // if (move_index >= 8)
     // {
     //     raise_error(ERROR_NOTATION_NOT_AN_ORTHO_PAWN_MOVE_JUMP);
     // }
@@ -640,6 +663,10 @@ uint8_t check_move_possible_pawn_L_jump(player, start_node, direction_1, directi
     return 1;
 }
 
+/////////////////////////
+/////////// WALL ACTIONS 
+////////////////////////
+
 uint8_t make_move_wall(uint8_t player, uint8_t move_index)
 {
 
@@ -650,7 +677,7 @@ uint8_t make_move_wall(uint8_t player, uint8_t move_index)
         //return 0;
     }
 
-    move_index_to_row_col_dir(move_index, wall_row_col_dir);
+    wall_move_index_to_row_col_dir(move_index, wall_row_col_dir);
     set_wall_by_row_col(player, wall_row_col_dir[0], wall_row_col_dir[1], wall_row_col_dir[2]);
     graph_wall_add(move_index);
 
@@ -663,7 +690,7 @@ void adjust_affected_walls_validity_scores(uint8_t move_index, uint8_t add_wall_
     // void delete_all_affected_wall_moves_from_valid_moves(move_index){
 
     uint8_t wall_row_col_dir[3];
-    move_index_to_row_col_dir(move_index, wall_row_col_dir);
+    wall_move_index_to_row_col_dir(move_index, wall_row_col_dir);
     adjust_wall_invalidity_score(
         wall_row_col_dir[0],
         wall_row_col_dir[1],
@@ -742,7 +769,7 @@ void adjust_wall_invalidity_score(uint8_t row, uint8_t col, uint8_t dir, uint8_t
     row_col_dir[2] = dir;
 
     uint8_t invalid_move_index;
-    invalid_move_index = row_col_dir_to_move_index(row_col_dir);
+    invalid_move_index = wall_row_col_dir_to_move_index(row_col_dir);
 
     if (increase_invalidity_else_decrease)
     {
@@ -758,8 +785,9 @@ void adjust_wall_invalidity_score(uint8_t row, uint8_t col, uint8_t dir, uint8_t
     moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
 }
 
-uint8_t row_col_dir_to_move_index(uint8_t *row_col_dir)
+uint8_t wall_row_col_dir_to_move_index(uint8_t *row_col_dir)
 {
+    // for walls
     uint8_t offset;
     if (row_col_dir[2])
     { // horizontal
@@ -773,7 +801,7 @@ uint8_t row_col_dir_to_move_index(uint8_t *row_col_dir)
     return ((row_col_dir[0] - 1) * 8) + (row_col_dir[1] - 1) + offset;
 }
 
-void move_index_to_row_col_dir(uint8_t move_index, uint8_t *row_col_dir)
+void wall_move_index_to_row_col_dir(uint8_t move_index, uint8_t *row_col_dir)
 {
     if (move_index < MOVE_INDEX_FIRST_WALL)
     {
@@ -833,6 +861,8 @@ void walls_get_all_positions(uint8_t *positions, uint8_t player)
         positions[i * 3 + 2] = players[player].walls[i].horizontal_else_vertical;
     }
 }
+
+
 
 void make_move_pawn(uint8_t player, uint8_t move_index)
 {
@@ -932,12 +962,6 @@ void pawn_move_index_to_row_col_deltas(uint8_t move_index, int8_t *deltas_row_co
     }
     deltas_row_col[0] = delta_row;
     deltas_row_col[1] = delta_col;
-}
-
-void get_winning_distances(uint8_t *distances)
-{
-    distances[0] = graph_get_distance_to_winning_square(0, pawn_get_position_as_node_index(0));
-    distances[1] = graph_get_distance_to_winning_square(1, pawn_get_position_as_node_index(1));
 }
 
 uint8_t pawn_get_position_as_node_index(uint8_t player)

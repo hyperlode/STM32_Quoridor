@@ -37,8 +37,8 @@ uint8_t check_move_possible_pawn_orthogonal_jump(uint8_t move_index, uint8_t pla
 uint8_t check_move_possible_pawn_diagonal(uint8_t move_index, uint8_t player);
 uint8_t check_move_possible_pawn_L_jump(player, start_node, direction_1, direction_2);
 uint8_t make_move_wall(uint8_t player, uint8_t move_index);
-uint8_t row_col_dir_to_move_index(uint8_t *row_col_dir);
-void move_index_to_row_col_dir(uint8_t move_index, uint8_t *row_col_dir);
+uint8_t wall_row_col_dir_to_move_index(uint8_t *row_col_dir);
+void wall_move_index_to_row_col_dir(uint8_t move_index, uint8_t *row_col_dir);
 void set_wall_by_row_col(uint8_t player, uint8_t row, uint8_t col, uint8_t horizontal_else_vertical);
 void walls_get_all_positions(uint8_t *positions, uint8_t player);
 void make_move_pawn(uint8_t player, uint8_t move_index);
