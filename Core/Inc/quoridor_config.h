@@ -159,6 +159,8 @@ struct Player{
 
 typedef struct Player Player;
 
+
+
 _END_STD_C
 
 #endif // QUORIDOR_CONFIG_H
