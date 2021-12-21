@@ -3,7 +3,7 @@
 _BEGIN_STD_C
 #include <_ansi.h>
 
-#define BUTTON_INTERRUPT_DEBOUNCE_MILLIS 50
+#define BUTTON_INTERRUPT_DEBOUNCE_MILLIS 250
 
 
 static void byte_set_bit(uint8_t *the_byte, uint8_t mask, uint8_t value);

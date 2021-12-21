@@ -138,15 +138,8 @@ int main(void)
     {
 
         // update_game_move();
-        button_set_state(BUTTON_SOUTH, HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11));
-        button_set_state(BUTTON_NORTH, HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12));
-        button_set_state(BUTTON_ENTER, HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_14));
-        button_set_state(BUTTON_EAST, HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_13));
-        button_set_state(BUTTON_WEST, HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_14));
-        // button_set_state(BUTTON_TOGGLE, HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15));
+        read_buttons();
         
-        buttons_refresh();
-
         uint8_t edges_up[6];
 
         edges_up[0] = button_get_edge_up_single_readout(BUTTON_NORTH);
@@ -154,8 +147,8 @@ int main(void)
         edges_up[2] = button_get_edge_up_single_readout(BUTTON_SOUTH);
         edges_up[3] = button_get_edge_up_single_readout(BUTTON_WEST);
         edges_up[4] = button_get_edge_up_single_readout(BUTTON_ENTER);
-        // edges_up[5] = button_get_edge_up_single_readout(BUTTON_TOGGLE);
-        edges_up[5] = button_interrupt_get_edge_up_single_readout(0);
+        edges_up[5] = button_get_edge_up_single_readout(BUTTON_TOGGLE);
+        //edges_up[5] = button_interrupt_get_edge_up_single_readout(0);
 
         // toggle light at each button press to relief myself of the stress if it's a software problem or a fucking bad button problem
         if (
@@ -492,16 +485,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BOOT1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PE10 */
-  GPIO_InitStruct.Pin = GPIO_PIN_10;
+  /*Configure GPIO pins : PE10 PE15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PE11 PE12 PE13 PE14
-                           PE15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14
-                          |GPIO_PIN_15;
+  /*Configure GPIO pins : PE11 PE12 PE13 PE14 */
+  GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
@@ -549,11 +540,22 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+void read_buttons(){
+    button_set_state(BUTTON_SOUTH, HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11));
+    button_set_state(BUTTON_NORTH, HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12));
+    button_set_state(BUTTON_ENTER, HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_14));
+    button_set_state(BUTTON_EAST, HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_13));
+    button_set_state(BUTTON_WEST, HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_14));
+    button_set_state(BUTTON_TOGGLE, HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15));
+    buttons_refresh();
+    
+}
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-    if ( GPIO_Pin == GPIO_PIN_10){
+    if ( GPIO_Pin == GPIO_PIN_15){
         //button_set_state(BUTTON_TOGGLE, 1);
         button_interrupt_set(0);
         //buttons_refresh();
+        //read_buttons();
     }
 }
 
