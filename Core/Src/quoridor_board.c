@@ -46,22 +46,37 @@ void menu_display_3_items(uint8_t active_item, char *title, char *item_0, char *
     // max
     ssd1306_Fill(White);
     ssd1306_SetCursor(5, 4);
-    // ssd1306_WriteString("Pick your fight", Font_7x10, Black);
     ssd1306_WriteString(title, Font_7x10, Black);
 
     ssd1306_SetCursor(15, 20);
-    // ssd1306_WriteString("Human vs Machine", Font_7x10, Black);
     ssd1306_WriteString(item_0, Font_7x10, Black);
 
     ssd1306_SetCursor(15, 34);
     ssd1306_WriteString(item_1, Font_7x10, Black);
-    // ssd1306_WriteString("Human battle", Font_7x10, Black);
 
     ssd1306_SetCursor(15, 48);
-    // ssd1306_WriteString("Machine battle", Font_7x10, Black);
     ssd1306_WriteString(item_2, Font_7x10, Black);
 
     board_draw_pawn_row_col(active_item * 2 + 1, 0, 1);
+
+    ssd1306_UpdateScreen();
+}
+
+void menu_display_4_lines(uint8_t active_item, char *item_0, char *item_1, char *item_2, char *item_3)
+{
+    // max
+    ssd1306_Fill(White);
+    ssd1306_SetCursor(5, 4);
+    ssd1306_WriteString(item_0, Font_7x10, Black);
+
+    ssd1306_SetCursor(5, 20);
+    ssd1306_WriteString(item_1, Font_7x10, Black);
+
+    ssd1306_SetCursor(5, 34);
+    ssd1306_WriteString(item_2, Font_7x10, Black);
+
+    ssd1306_SetCursor(5, 48);
+    ssd1306_WriteString(item_3, Font_7x10, Black);
 
     ssd1306_UpdateScreen();
 }
@@ -193,16 +208,7 @@ void board_info_draw()
         // }
     }
 
-    // vertical thick board border
-    for (uint8_t i = 0; i < 2; i++)
-    {
-        ssd1306_Line(
-            BOARD_OFFSET_X + i + 9 * BOARD_CELL_SPACING,
-            BOARD_OFFSET_Y,
-            BOARD_OFFSET_X + i + 9 * BOARD_CELL_SPACING,
-            BOARD_OFFSET_Y + BOARD_CELL_SPACING * 9,
-            Black);
-    }
+  
 
     // column titles
     uint8_t player_to_north_active = (move_counter_b % 2 == 0);
@@ -266,33 +272,22 @@ void board_draw_error_type()
 void board_draw_time_bar()
 {
     // float tmp = 1.0f * BOARD_Y_MAX / 100 * (100 - time_bar_percentage_completed);
-    float tmp = (1.0f * BOARD_Y_MAX / 100) * time_bar_percentage_completed;
+    float tmp = (1.0f * BOARD_Y_MAX / 100) * ( time_bar_percentage_completed);
     uint8_t bar_length = (uint8_t) tmp;
 
-    // percentage to bar length 
-      ssd1306_Line(
-        BOARD_X_MAX ,
-        0,
-        BOARD_X_MAX ,
-        bar_length ,
-        Black);
 
-    // // double width
-    //   ssd1306_Line(
-    //     BOARD_X_MAX-1 ,
-    //     0,
-    //     BOARD_X_MAX-1 ,
-    //     bar_length ,
-    //     Black);
-    // double width
-      ssd1306_Line(
-        BOARD_X_MAX-1 ,
-        0,
-        BOARD_X_MAX-1 ,
-        BOARD_Y_MAX ,
-        Black);
+        //BOARD_OFFSET_X + 9 * BOARD_CELL_SPACING, ,
 
+    for(uint8_t i=0;i<1;i++){
+        // percentage to bar length 
+        ssd1306_Line(
+            BOARD_OFFSET_X + 9 * BOARD_CELL_SPACING + 1 + i,
+            bar_length,
+            BOARD_OFFSET_X + 9 * BOARD_CELL_SPACING + 1 + i,
+            BOARD_Y_MAX,
+            Black);
 
+    }
 }
 
 void board_draw_move_type()
@@ -348,7 +343,20 @@ void board_state_draw()
     board_draw_error_type();
     if ( time_bar_percentage_completed != 100){
         board_draw_time_bar();
+
+    }else{
+        // vertical thick board border
+        for (uint8_t i = 0; i < 2; i++)
+        {
+        ssd1306_Line(
+            BOARD_OFFSET_X + i + 9 * BOARD_CELL_SPACING,
+            BOARD_OFFSET_Y,
+            BOARD_OFFSET_X + i + 9 * BOARD_CELL_SPACING,
+            BOARD_OFFSET_Y + BOARD_CELL_SPACING * 9,
+            Black);
+        }
     }
+
 
     board_draw_outline(); // save for last to overwrite wall placement white dots.
 

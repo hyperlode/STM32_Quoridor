@@ -26,7 +26,7 @@ uint8_t auto_play_single_step_mode;
 
 uint8_t loaded_game_history_moves_indeces[RECORD_MOVES_HISTORY_LENGTH];
 uint8_t loaded_game_history_moves_indeces_length;
-uint8_t players_types[2];
+uint8_t players_type[2];
 
 void quoridor_display_game_with_error_code(uint8_t error_code)
 {
@@ -54,8 +54,8 @@ void quoridor_init()
     function_pointer = &quoridor_display_game_with_time_bar_percentage;
     autoplay_display_time_callback(function_pointer);
 
-    players_types[0] = PLAYER_HUMAN;
-    players_types[1] = PLAYER_COMPUTER_L1;
+    players_type[0] = PLAYER_HUMAN;
+    players_type[1] = PLAYER_COMPUTER_L1;
 }
 
 void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
@@ -75,7 +75,8 @@ void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
 
     case STATE_PROGRAM_MENU_GAMETYPE:
     {
-        quoridor_menu_gameplay(north, east, south, west, enter, toggle);
+        // quoridor_menu_gameplay(north, east, south, west, enter, toggle);
+        quoridor_menu_choose_gametype(north, east, south, west, enter, toggle);
         break;
     }
     case STATE_PROGRAM_GAME_PLAYING:
@@ -165,6 +166,89 @@ void quoridor_menu_ingame(uint8_t north, uint8_t east, uint8_t south, uint8_t we
     menu_ingame_display_update = 0;
 }
 
+
+
+void quoridor_menu_choose_gametype(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
+{
+
+    if (north)
+    {
+        players_type[0]++;
+        if (players_type[0] > 3){
+            players_type[0] = 1;
+        }
+        menu_display_update = 1;
+    }
+
+    if (south)
+    {
+        players_type[1]++;
+        if (players_type[1] > 3){
+            players_type[1] = 1;
+        }
+        menu_display_update = 1;
+    }
+
+
+    if (enter)
+    {
+        quoridor_state = STATE_QUORIDOR_INIT;
+        program_state = STATE_PROGRAM_GAME_PLAYING;
+        
+    }
+
+    if (menu_display_update)
+    {
+        char line_1[]             = "      vs";
+
+        char player_toNorth_type_text_0[] = "Invalid";
+        char player_toNorth_type_text_1[] = "    Human     [^]";
+        char player_toNorth_type_text_2[] = "   Auto Easy  [^]";
+        char player_toNorth_type_text_3[] = "   Auto Hard  [^]";
+
+        char player_toSouth_type_text_0[] = "Invalid";
+        char player_toSouth_type_text_1[] = "    Human     [v]";
+        char player_toSouth_type_text_2[] = "   Auto Easy  [v]";
+        char player_toSouth_type_text_3[] = "   Auto Hard  [v]";
+        
+
+
+        char* player_toNorth_types_text[4]= {
+            player_toNorth_type_text_0,
+            player_toNorth_type_text_1,
+            player_toNorth_type_text_2,
+            player_toNorth_type_text_3
+        };
+        char* player_toSouth_types_text[4]= {
+            player_toSouth_type_text_0,
+            player_toSouth_type_text_1,
+            player_toSouth_type_text_2,
+            player_toSouth_type_text_3
+        };
+
+        char line_3[] = "      Start [Red]";
+
+        menu_display_4_lines(menu_active_item, player_toNorth_types_text[players_type[0]], line_1, player_toSouth_types_text[players_type[1]], line_3);
+        // char player_type_text_0[] = "Invalid";
+        // char player_type_text_1[] = "     Human";
+        // char player_type_text_2[] = "  Easy machine";
+        // char player_type_text_3[] = "  Hard machine";
+        // char line_1[]             = "      vs";
+
+        // char* player_types_text[4]= {
+        //     player_type_text_0,
+        //     player_type_text_1,
+        //     player_type_text_2,
+        //     player_type_text_3
+        // };
+
+        // char line_3[] = "       [v,^, Red]";
+
+        // menu_display_4_lines(menu_active_item, player_types_text[players_type[0]], line_1, player_types_text[players_type[1]], line_3);
+    }
+    menu_display_update = 0;
+}
+
 void quoridor_menu_gameplay(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
 {
 
@@ -195,24 +279,24 @@ void quoridor_menu_gameplay(uint8_t north, uint8_t east, uint8_t south, uint8_t 
         {
         case 2:
         {
-            players_types[0] = PLAYER_HUMAN;
-            players_types[1] = PLAYER_COMPUTER_L2;
+            players_type[0] = PLAYER_HUMAN;
+            players_type[1] = PLAYER_COMPUTER_L2;
             quoridor_state = STATE_QUORIDOR_INIT;
             program_state = STATE_PROGRAM_GAME_PLAYING;
             break;
         }
         case 1:
         {
-            players_types[0] = PLAYER_HUMAN;
-            players_types[1] = PLAYER_HUMAN;
+            players_type[0] = PLAYER_HUMAN;
+            players_type[1] = PLAYER_HUMAN;
             quoridor_state = STATE_QUORIDOR_INIT;
             program_state = STATE_PROGRAM_GAME_PLAYING;
             break;
         }
         case 0:
         {
-            players_types[0] = PLAYER_COMPUTER_L1;
-            players_types[1] = PLAYER_COMPUTER_L1;
+            players_type[0] = PLAYER_COMPUTER_L1;
+            players_type[1] = PLAYER_COMPUTER_L1;
             quoridor_state = STATE_QUORIDOR_INIT;
             program_state = STATE_PROGRAM_GAME_PLAYING;
             break;
@@ -373,7 +457,7 @@ void quoridor_game_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
     ///////////////// admin
     case (STATE_QUORIDOR_NEXT_PLAYER):
     {
-        uint8_t player_type = players_types[get_playing_player()];
+        uint8_t player_type = players_type[get_playing_player()];
 
         switch (player_type)
         {
