@@ -30,6 +30,7 @@
 #include "quoridor_tests.h"
 #include <string.h>
 #include "buttons.h"
+#include "button_interrupt.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -131,6 +132,8 @@ int main(void)
     quoridor_lode_load_game_history_as_one_string(moves_lode_notation, 9);
     quoridor_init();
 
+    button_interrupt_init();
+
     while (1)
     {
 
@@ -140,7 +143,8 @@ int main(void)
         button_set_state(BUTTON_ENTER, HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_14));
         button_set_state(BUTTON_EAST, HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_13));
         button_set_state(BUTTON_WEST, HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_14));
-        button_set_state(BUTTON_TOGGLE, HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15));
+        // button_set_state(BUTTON_TOGGLE, HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15));
+        
         buttons_refresh();
 
         uint8_t edges_up[6];
@@ -150,7 +154,8 @@ int main(void)
         edges_up[2] = button_get_edge_up_single_readout(BUTTON_SOUTH);
         edges_up[3] = button_get_edge_up_single_readout(BUTTON_WEST);
         edges_up[4] = button_get_edge_up_single_readout(BUTTON_ENTER);
-        edges_up[5] = button_get_edge_up_single_readout(BUTTON_TOGGLE);
+        // edges_up[5] = button_get_edge_up_single_readout(BUTTON_TOGGLE);
+        edges_up[5] = button_interrupt_get_edge_up_single_readout(0);
 
         // toggle light at each button press to relief myself of the stress if it's a software problem or a fucking bad button problem
         if (
@@ -487,10 +492,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BOOT1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PE10 PE11 PE12 PE13
-                           PE14 PE15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13
-                          |GPIO_PIN_14|GPIO_PIN_15;
+  /*Configure GPIO pin : PE10 */
+  GPIO_InitStruct.Pin = GPIO_PIN_10;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PE11 PE12 PE13 PE14
+                           PE15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14
+                          |GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
@@ -530,9 +541,23 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(MEMS_INT2_GPIO_Port, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+    if ( GPIO_Pin == GPIO_PIN_10){
+        //button_set_state(BUTTON_TOGGLE, 1);
+        button_interrupt_set(0);
+        //buttons_refresh();
+    }
+}
+
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 

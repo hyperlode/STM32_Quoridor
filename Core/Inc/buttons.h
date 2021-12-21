@@ -7,9 +7,9 @@ _BEGIN_STD_C
 #define BUTTON_DEBOUNCE_MILLIS 20
 void button_set_state(uint8_t button, uint8_t state);
 
-void byte_set_bit(uint8_t *the_byte, uint8_t mask, uint8_t value);
+static void byte_set_bit(uint8_t *the_byte, uint8_t mask, uint8_t value);
 
-uint8_t byte_get_bit(uint8_t *the_byte, uint8_t mask);
+static uint8_t byte_get_bit(uint8_t *the_byte, uint8_t mask);
 
 void button_set_state_debounced(uint8_t button, uint8_t state);
 
