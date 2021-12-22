@@ -11,6 +11,8 @@ uint8_t volatile autoplay_L2_valid_move_indeces_with_best_L1_move[MOVE_INDEX_COU
 uint8_t volatile autoplay_L2_valid_move_expected_delta[MOVE_INDEX_COUNT];
 void (*callback_display_time_function_pointer)(uint8_t);
 
+uint8_t autoplay_paused;
+
 void autoplay_get_cursor(uint8_t *cursor_pawn_row_col)
 {
     pawn_get_position_as_row_col(cursor_pawn_row_col, get_playing_player());
@@ -19,6 +21,7 @@ void autoplay_get_cursor(uint8_t *cursor_pawn_row_col)
 uint8_t autoplay_init()
 {
     // end_of_game = 0;
+    autoplay_paused = 0;
 }
 
 void autoplay_display_time_callback(void (*functionPointer)(uint8_t))
@@ -85,6 +88,18 @@ uint8_t autoplay_get_best_next_move(uint8_t player, uint8_t depth)
     }
 }
 
+void autoplay_paused_set(){
+    autoplay_paused = 1;
+}
+
+void autoplay_paused_reset(){
+    autoplay_paused = 1;
+}
+
+uint8_t  autoplay_paused_get(){
+    return autoplay_paused;
+}
+
 uint8_t autoplay_get_best_next_move_L2(uint8_t player)
 {
     // copy valid moves for this move. Cannot be done by reference, it will change during make and undo moves.
@@ -100,6 +115,15 @@ uint8_t autoplay_get_best_next_move_L2(uint8_t player)
 
     for (uint8_t L2_i = 0; L2_i < L2_move_count; L2_i++)
     {
+        
+        if (button_interrupt_get_edge_up_single_readout(0)){
+
+
+            // show ingame menu: - give up, continue,force L2
+            // return, change gamestate.
+            // autoplay_paused_set();
+            // break;
+        }
 
         float tmp = 1.0f * L2_i / L2_move_count;
         callback_display_time_function_pointer((uint8_t)(tmp * 100));

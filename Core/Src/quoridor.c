@@ -91,13 +91,13 @@ void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
     }
     }
 }
-void quoridor_menu_ingame_init()
+void quoridor_menu_ingame_human_init()
 {
     menu_ingame_active_item = 2;
     menu_ingame_display_update = 1;
 }
 
-void quoridor_menu_ingame(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
+void quoridor_menu_ingame_human(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
 {
 
     if (north)
@@ -165,6 +165,83 @@ void quoridor_menu_ingame(uint8_t north, uint8_t east, uint8_t south, uint8_t we
     }
     menu_ingame_display_update = 0;
 }
+
+void quoridor_menu_ingame_computer_init()
+{
+    menu_ingame_active_item = 2;
+    menu_ingame_display_update = 1;
+}
+
+void quoridor_menu_ingame_computer(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
+{
+
+    if (north)
+    {
+        menu_ingame_active_item++;
+        if (menu_ingame_active_item > 2)
+        {
+            menu_ingame_active_item = 0;
+        }
+        menu_ingame_display_update = 1;
+    }
+    if (south)
+    {
+        if (menu_ingame_active_item == 0)
+        {
+            menu_ingame_active_item = 2;
+        }
+        else
+        {
+            menu_ingame_active_item--;
+        }
+        menu_ingame_display_update = 1;
+    }
+
+    if (enter)
+    {
+        switch (menu_ingame_active_item)
+        {
+        case 0:
+        {
+            //program_state = STATE_PROGRAM_MENU_GAMETYPE_INIT;
+            // give up
+            program_state = STATE_PROGRAM_MENU_GAMETYPE_INIT;
+            break;
+        }
+        case 1:
+        {
+            // undo
+            quoridor_state = STATE_QUORIDOR_UNDO_TURN;
+            break;
+        }
+        case 2:
+        {
+            autoplay_execute_next_move(2);
+            // return to game
+            human_back_to_game();
+
+            break;
+        }
+        default:
+        {
+            break;
+        }
+        }
+    }
+
+    if (menu_ingame_display_update)
+    {
+        char title[] = "Machine interrupted... ";
+        char item_0[] = "Continue";
+        char item_1[] = "Give up";
+        char item_2[] = "Force move";
+
+        menu_display_3_items(menu_ingame_active_item, title, item_0, item_1, item_2);
+    }
+    menu_ingame_display_update = 0;
+}
+
+
 
 
 
@@ -396,12 +473,7 @@ void quoridor_game_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
     case (STATE_QUORIDOR_COMPUTER_L2_TURN_INIT):
     {
         quoridor_display_game_with_time_bar_percentage(100);
-        quoridor_state = STATE_QUORIDOR_COMPUTER_L2_TURN;
 
-        break;
-    }
-    case (STATE_QUORIDOR_COMPUTER_L2_TURN):
-    {
 
         computer_emphasize_pawn();
 
@@ -417,18 +489,54 @@ void quoridor_game_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
             }
         }
 
+        if (autoplay_paused_get()){
+            quoridor_state = STATE_QUORIDOR_COMPUTER_L2_TURN_PAUSED_INIT;
+        }else{
+            quoridor_state = STATE_QUORIDOR_COMPUTER_L2_TURN;
+
+        }
+
+
+        break;
+    }
+    case (STATE_QUORIDOR_COMPUTER_L2_TURN):
+    {
+
+        
+        quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_FINISHED;
+
         if (west)
         {
             undo_last_move();
         }
 
-       
-        quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_FINISHED;
 
+        if (autoplay_paused_get()){
+            quoridor_state = STATE_QUORIDOR_COMPUTER_L2_TURN_PAUSED_INIT;
+        }else{
+            quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_FINISHED;
+
+        }
+       
+        break;
+    }
+    case (STATE_QUORIDOR_COMPUTER_L2_TURN_PAUSED_INIT):
+    {
+        quoridor_menu_ingame_computer_init();
+        quoridor_state = STATE_QUORIDOR_COMPUTER_L2_TURN_PAUSED;
 
         break;
     }
+    case (STATE_QUORIDOR_COMPUTER_L2_TURN_PAUSED):
+    {
+        quoridor_menu_ingame_computer(north, east, south, west, enter, toggle);
+        
+        if (!autoplay_paused_get()){
+            quoridor_state = STATE_QUORIDOR_COMPUTER_L2_TURN;
+        }
 
+        break;
+    }
     case (STATE_QUORIDOR_COMPUTER_TURN_FINISHED):
     {
 
@@ -533,9 +641,9 @@ void quoridor_human_interaction(uint8_t north, uint8_t east, uint8_t south, uint
     {
         if (!menu_ingame_active_memory)
         {
-            quoridor_menu_ingame_init(); // should be called only once at init todo
+            quoridor_menu_ingame_human_init(); // should be called only once at init todo
         }
-        quoridor_menu_ingame(north, east, south, west, enter, toggle);
+        quoridor_menu_ingame_human(north, east, south, west, enter, toggle);
         menu_ingame_active_memory = 1;
     }
     else
