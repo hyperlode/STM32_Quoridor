@@ -49,13 +49,13 @@ void menu_display_3_items(uint8_t active_item, char *title, char *item_0, char *
     ssd1306_WriteString(title, Font_7x10, Black);
 
     ssd1306_SetCursor(15, 20);
-    ssd1306_WriteString(item_0, Font_7x10, Black);
+    ssd1306_WriteString(item_2, Font_7x10, Black);
 
     ssd1306_SetCursor(15, 34);
     ssd1306_WriteString(item_1, Font_7x10, Black);
 
     ssd1306_SetCursor(15, 48);
-    ssd1306_WriteString(item_2, Font_7x10, Black);
+    ssd1306_WriteString(item_0, Font_7x10, Black);
 
     board_draw_pawn_row_col(active_item * 2 + 1, 0, 1);
 
@@ -307,6 +307,12 @@ void board_draw_move_type()
     {
         ssd1306_SetCursor(BOARD_MENU_X_OFFSET + BOARD_MENU_COL_ITEMS_WIDTH, BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT + 3 * BOARD_MENU_ROW_HEIGHT);
         ssd1306_WriteString("L1", Font_7x10, Black);
+        break;
+    }
+    case AUTOPLAY_MOVE_TYPE_CALCULATED_LEVEL_2:
+    {
+        ssd1306_SetCursor(BOARD_MENU_X_OFFSET + BOARD_MENU_COL_ITEMS_WIDTH, BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT + 3 * BOARD_MENU_ROW_HEIGHT);
+        ssd1306_WriteString("L2", Font_7x10, Black);
         break;
     }
     default:

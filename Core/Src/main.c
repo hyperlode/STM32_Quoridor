@@ -135,7 +135,7 @@ int main(void)
     quoridor_lode_load_game_history_as_one_string(moves_lode_notation, 9);
     quoridor_init();
 
-    button_interrupt_init();
+    button_interupt_set_button(0, GPIOE, GPIO_PIN_15);
 
     while (1)
     {

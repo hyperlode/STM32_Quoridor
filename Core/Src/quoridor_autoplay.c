@@ -18,11 +18,10 @@ void autoplay_get_cursor(uint8_t *cursor_pawn_row_col)
     pawn_get_position_as_row_col(cursor_pawn_row_col, get_playing_player());
 }
 
-uint8_t autoplay_init()
-{
-    // end_of_game = 0;
-    autoplay_paused = 0;
-}
+// uint8_t autoplay_init()
+// {
+//     autoplay_paused_set(0);
+// }
 
 void autoplay_display_time_callback(void (*functionPointer)(uint8_t))
 {
@@ -31,24 +30,33 @@ void autoplay_display_time_callback(void (*functionPointer)(uint8_t))
 
 uint8_t autoplay_execute_next_move(uint8_t level)
 {
-    // if (end_of_game)
-    // {
-    //     raise_error(ERROR_MOVING_WHILE_END_OF_GAME);
-    // }
-
     uint8_t best_move_index;
+    autoplay_paused_set(0);
     best_move_index = auto_play_get_move_from_opening_database();
     autoplay_move_type = AUTOPLAY_MOVE_TYPE_OPENING_DATABASE;
+
 
     if (
         best_move_index == MOVE_INDEX_DUMMY ||
         !get_move_index_valid(best_move_index)) // database move cannot be trusted. Check for validity.
     {
         best_move_index = autoplay_get_best_next_move(get_playing_player(), level);
-        autoplay_move_type = AUTOPLAY_MOVE_TYPE_CALCULATED_LEVEL_1;
+        if (level == 1)
+        {
+            autoplay_move_type = AUTOPLAY_MOVE_TYPE_CALCULATED_LEVEL_1;
+        }
+        else if (level == 2)
+        {
+            autoplay_move_type = AUTOPLAY_MOVE_TYPE_CALCULATED_LEVEL_2;
+        }
     }
 
-    make_move(best_move_index);
+    if (autoplay_paused_get()){
+        return 0;
+    }else{
+        return make_move_if_valid(best_move_index);
+
+    }
 }
 
 uint8_t autoplay_get_move_type()
@@ -64,7 +72,7 @@ uint8_t auto_play_get_move_from_opening_database()
 
 uint8_t autoplay_get_best_next_move(uint8_t player, uint8_t depth)
 {
-
+    
     switch (depth)
     {
 
@@ -88,15 +96,13 @@ uint8_t autoplay_get_best_next_move(uint8_t player, uint8_t depth)
     }
 }
 
-void autoplay_paused_set(){
-    autoplay_paused = 1;
+void autoplay_paused_set(uint8_t paused)
+{
+    autoplay_paused = paused;
 }
 
-void autoplay_paused_reset(){
-    autoplay_paused = 1;
-}
-
-uint8_t  autoplay_paused_get(){
+uint8_t autoplay_paused_get()
+{
     return autoplay_paused;
 }
 
@@ -115,16 +121,17 @@ uint8_t autoplay_get_best_next_move_L2(uint8_t player)
 
     for (uint8_t L2_i = 0; L2_i < L2_move_count; L2_i++)
     {
-        
-        if (button_interrupt_get_edge_up_single_readout(0)){
 
-
+        // check for pause
+        if (button_interrupt_get_edge_up_single_readout(0))
+        {
             // show ingame menu: - give up, continue,force L2
             // return, change gamestate.
-            // autoplay_paused_set();
-            // break;
+            autoplay_paused_set(1);
+            break;
         }
 
+        // display time indication
         float tmp = 1.0f * L2_i / L2_move_count;
         callback_display_time_function_pointer((uint8_t)(tmp * 100));
 
@@ -134,7 +141,7 @@ uint8_t autoplay_get_best_next_move_L2(uint8_t player)
         // this is the opponent playing
         int8_t best_opponent_delta;
         uint8_t best_L1_move = autoplay_get_best_next_move_L1_with_delta(get_playing_player(), &best_opponent_delta);
-        
+
         autoplay_L2_valid_move_indeces_with_best_L1_move[L2_i] = best_L1_move;
 
         // delta needs to be as small as possible because, we're looking for the opponent move with the least overal damage.
@@ -166,21 +173,6 @@ uint8_t autoplay_get_best_next_move_L2(uint8_t player)
 
         undo_last_move();
     }
-
-    // for all valid moves:
-    // make move
-    // for all valid moves
-    // make move
-    // get delta and store if improved
-    // undo move
-    // undo move
-
-    // get all best deltas and moves.
-
-    // analyse L1 deltas
-    // make move and display.
-    // uint8_t rand_index;
-    // rand_index = rand() % equal_delta_moves_count;
 
     uint8_t wall_aggressiveness = COMPUTER_PLAYER_AGRESSIVENESS_EAGERNESS_TO_PLAY_WALL;
     return pick_move_from_move_indeces(equal_delta_moves, equal_delta_moves_count, pawn_moves_count, wall_aggressiveness);
