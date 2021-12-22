@@ -62,6 +62,27 @@ void menu_display_3_items(uint8_t active_item, char *title, char *item_0, char *
     ssd1306_UpdateScreen();
 }
 
+void menu_display_game_type(uint8_t active_item, char *item_0, char *item_1, char *item_2, char *item_3)
+{
+      ssd1306_Fill(White);
+    ssd1306_SetCursor(2, 4);
+    ssd1306_WriteString(item_0, Font_7x10, Black);
+
+    ssd1306_SetCursor(2, 20);
+    ssd1306_WriteString(item_1, Font_7x10, Black);
+
+    ssd1306_SetCursor(2, 34);
+    ssd1306_WriteString(item_2, Font_7x10, Black);
+
+    ssd1306_SetCursor(2, 48);
+    ssd1306_WriteString(item_3, Font_7x10, Black);
+
+     
+    board_draw_pawn(3, 5, 0, 0);
+    board_draw_pawn(3, 35, 1, 0);
+    ssd1306_UpdateScreen();
+}
+
 void menu_display_4_lines(uint8_t active_item, char *item_0, char *item_1, char *item_2, char *item_3)
 {
     // max

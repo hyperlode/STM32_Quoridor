@@ -269,17 +269,17 @@ void quoridor_menu_choose_gametype(uint8_t north, uint8_t east, uint8_t south, u
 
     if (menu_display_update)
     {
-        char line_1[]             = "      vs";
+        char line_1[]             = "     vs";
 
         char player_toNorth_type_text_0[] = "Invalid";
-        char player_toNorth_type_text_1[] = "    Human     [^]";
-        char player_toNorth_type_text_2[] = "   Auto Easy  [^]";
-        char player_toNorth_type_text_3[] = "   Auto Hard  [^]";
+        char player_toNorth_type_text_1[] = "    Human      [^]";
+        char player_toNorth_type_text_2[] = "   Auto Easy   [^]";
+        char player_toNorth_type_text_3[] = "   Auto Hard   [^]";
 
         char player_toSouth_type_text_0[] = "Invalid";
-        char player_toSouth_type_text_1[] = "    Human     [v]";
-        char player_toSouth_type_text_2[] = "   Auto Easy  [v]";
-        char player_toSouth_type_text_3[] = "   Auto Hard  [v]";
+        char player_toSouth_type_text_1[] = "    Human      [v]";
+        char player_toSouth_type_text_2[] = "   Auto Easy   [v]";
+        char player_toSouth_type_text_3[] = "   Auto Hard   [v]";
         
 
 
@@ -296,9 +296,9 @@ void quoridor_menu_choose_gametype(uint8_t north, uint8_t east, uint8_t south, u
             player_toSouth_type_text_3
         };
 
-        char line_3[] = "      Start [Red]";
+        char line_3[] = "             [Red]";
 
-        menu_display_4_lines(menu_active_item, player_toNorth_types_text[players_type[0]], line_1, player_toSouth_types_text[players_type[1]], line_3);
+        menu_display_game_type(menu_active_item, player_toNorth_types_text[players_type[0]], line_1, player_toSouth_types_text[players_type[1]], line_3);
       
     }
     menu_display_update = 0;
