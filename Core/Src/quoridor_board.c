@@ -93,46 +93,51 @@ void menu_display_game_type(uint8_t active_item, char *item_0, char *item_1, cha
     board_draw_pawn(3, 18, 0, 0);
     board_draw_pawn(3, 48, 1, 0);
     ssd1306_UpdateScreen();
-
-
-
-    // ssd1306_Fill(White);
-    // ssd1306_SetCursor(2, 4);
-    // ssd1306_WriteString(item_0, Font_7x10, Black);
-
-    // ssd1306_SetCursor(2, 20);
-    // ssd1306_WriteString(item_1, Font_7x10, Black);
-
-    // ssd1306_SetCursor(2, 34);
-    // ssd1306_WriteString(item_2, Font_7x10, Black);
-
-    // ssd1306_SetCursor(2, 48);
-    // ssd1306_WriteString(item_3, Font_7x10, Black);
-
-     
-    // board_draw_pawn(3, 5, 0, 0);
-    // board_draw_pawn(3, 35, 1, 0);
-    // ssd1306_UpdateScreen();
 }
 
-void menu_display_4_lines(uint8_t active_item, char *item_0, char *item_1, char *item_2, char *item_3)
+void menu_display_4_items(uint8_t active_item, char *item_0, char *item_1, char *item_2, char *item_3)
 {
     // max
     ssd1306_Fill(White);
-    ssd1306_SetCursor(5, 4);
+    ssd1306_SetCursor(15, 6);
     ssd1306_WriteString(item_0, Font_7x10, Black);
 
-    ssd1306_SetCursor(5, 20);
+    ssd1306_SetCursor(15, 20);
     ssd1306_WriteString(item_1, Font_7x10, Black);
 
-    ssd1306_SetCursor(5, 34);
+    ssd1306_SetCursor(15, 34);
     ssd1306_WriteString(item_2, Font_7x10, Black);
 
-    ssd1306_SetCursor(5, 48);
+    ssd1306_SetCursor(15, 48);
     ssd1306_WriteString(item_3, Font_7x10, Black);
 
+    board_draw_pawn(3, 5+14*(3-active_item), 1, 0);
     ssd1306_UpdateScreen();
 }
+
+void menu_display_5_items(uint8_t active_item, char *item_0, char *item_1, char *item_2, char *item_3, char *item_4)
+{
+    // max
+    ssd1306_Fill(White);
+    ssd1306_SetCursor(15, 3);
+    ssd1306_WriteString(item_0, Font_7x10, Black);
+
+    ssd1306_SetCursor(15, 15);
+    ssd1306_WriteString(item_1, Font_7x10, Black);
+
+    ssd1306_SetCursor(15, 27);
+    ssd1306_WriteString(item_2, Font_7x10, Black);
+
+    ssd1306_SetCursor(15, 39);
+    ssd1306_WriteString(item_3, Font_7x10, Black);
+
+    ssd1306_SetCursor(15, 51);
+    ssd1306_WriteString(item_4, Font_7x10, Black);
+
+    board_draw_pawn(3, 4+12*active_item, 1, 0);
+    ssd1306_UpdateScreen();
+}
+
 
 void board_set_cursor_wall(uint8_t *row_col_dir)
 {
