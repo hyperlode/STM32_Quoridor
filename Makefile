@@ -82,6 +82,7 @@ Core/Src/quoridor_notation.c \
 Core/Src/quoridor_tests.c \
 Core/Src/quoridor_games_database.c \
 Core/Src/buttons.c \
+Core/Src/quoridor_animation.c \
 Core/Src/button_interrupt.c \
 Core/Src/human_player.c \
 Drivers/ssd1306/ssd1306_fonts.c \

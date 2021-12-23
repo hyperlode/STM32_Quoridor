@@ -119,6 +119,14 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
     HAL_TIM_Base_Start_IT(&htim2);
+
+    //     // Update SystemCoreClock variable
+    // SystemCoreClockUpdate();
+    // // Make SysTick overflow every 1ms
+    // SysTick_Config(SystemCoreClock / 1000);
+
+    
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -201,6 +209,9 @@ int main(void)
   */
 void SystemClock_Config(void)
 {
+
+
+
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 

@@ -4,6 +4,7 @@
 #include "quoridor_board.h"
 #include "quoridor_gameplay.h"
 #include "human_player.h"
+#include "quoridor_animation.h"
 
 uint8_t distances_to_end[2];
 uint8_t players_positions[2][2];
@@ -44,7 +45,7 @@ void quoridor_display_game_with_time_bar_percentage(uint8_t percentage_completed
 void quoridor_init()
 {
     quoridor_state = STATE_QUORIDOR_INIT;
-    program_state = STATE_PROGRAM_MENU_GAMETYPE_INIT;
+    program_state = STATE_PROGRAM_FLASH_ANIMATION_INIT;
     auto_play_single_step_mode = 0;
     void (*function_pointer)(uint8_t);
 
@@ -64,18 +65,47 @@ void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
     switch (program_state)
     {
 
+    
+    case STATE_PROGRAM_FLASH_ANIMATION_INIT:
+    {
+        animation_init();
+        program_state = STATE_PROGRAM_FLASH_ANIMATION;
+
+        break;
+    }
+    case STATE_PROGRAM_FLASH_ANIMATION:
+    {
+       animation();
+       if (toggle){
+            animation_set_step_counter(0);
+       }
+        //if (animation_ended()){
+            if (enter){
+            program_state = STATE_PROGRAM_MENU_START_INIT;
+
+            }
+        //}
+        break;
+    }
+    case STATE_PROGRAM_MENU_START_INIT:
+    {
+        menu_display_update = 1;
+        program_state = STATE_PROGRAM_MENU_START;
+        break;
+    }
+    case STATE_PROGRAM_MENU_START:
+    {
+        quoridor_menu_start(north, east, south, west, enter, toggle);
+        break;
+    }
     case STATE_PROGRAM_MENU_GAMETYPE_INIT:
     {
-
-        menu_active_item = 2;
         menu_display_update = 1;
         program_state = STATE_PROGRAM_MENU_GAMETYPE;
         break;
     }
-
     case STATE_PROGRAM_MENU_GAMETYPE:
     {
-        // quoridor_menu_gameplay(north, east, south, west, enter, toggle);
         quoridor_menu_choose_gametype(north, east, south, west, enter, toggle);
         break;
     }
@@ -91,11 +121,75 @@ void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
     }
     }
 }
+
+void quoridor_menu_start(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
+{
+    if (south)
+    {
+        menu_ingame_active_item++;
+        if (menu_ingame_active_item > 2)
+        {
+            menu_ingame_active_item = 0;
+        }
+        menu_display_update = 1;
+    }
+    if (north)
+    {
+        if (menu_ingame_active_item == 0)
+        {
+            menu_ingame_active_item = 2;
+        }
+        else
+        {
+            menu_ingame_active_item--;
+        }
+        menu_display_update = 1;
+    }
+
+    if (enter)
+    {
+        switch (menu_ingame_active_item)
+        {
+        case 0:
+        {
+            program_state = STATE_PROGRAM_MENU_GAMETYPE_INIT;
+            break;
+        }
+        case 1:
+        {
+            program_state = STATE_PROGRAM_MENU_GAMETYPE_INIT;
+            break;
+        }
+        case 2:
+        {
+            program_state = STATE_PROGRAM_MENU_GAMETYPE_INIT;
+            break;
+        }
+        default:
+        {
+            break;
+        }
+        }
+    }
+
+    if (menu_display_update)
+    {
+        char title[] = "Quoridor";
+        char item_0[] = "Play";
+        char item_1[] = "Review";
+        char item_2[] = "Settings";
+
+        board_menu_display_3_items(menu_ingame_active_item, title, item_0, item_1, item_2);
+    }
+    menu_display_update = 0;
+}
+
 void quoridor_menu_ingame_human_init()
 {
     menu_ingame_active_item = 0;
     menu_ingame_display_update = 1;
 }
+
 
 void quoridor_menu_ingame_human(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
 {
@@ -171,13 +265,13 @@ void quoridor_menu_ingame_human(uint8_t north, uint8_t east, uint8_t south, uint
         char item_3[] = "Undo Two Moves";
         char item_4[] = "L2 move";
 
-        menu_display_5_items(menu_ingame_active_item, item_0, item_1, item_2, item_3, item_4);
+        board_menu_display_5_items(menu_ingame_active_item, item_0, item_1, item_2, item_3, item_4);
         // char title[] = "Back to game ";
         // char item_0[] = "L2 move";
         // char item_1[] = "Undo last move";
         // char item_2[] = "Give up";
 
-        // menu_display_4_items(menu_ingame_active_item, title, item_0, item_1, item_2);
+        // board_menu_display_4_items(menu_ingame_active_item, title, item_0, item_1, item_2);
     }
     menu_ingame_display_update = 0;
 }
@@ -190,8 +284,7 @@ void quoridor_menu_ingame_computer_init()
 
 void quoridor_menu_ingame_computer(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
 {
-
-    if (north)
+    if (south)
     {
         menu_ingame_active_item++;
         if (menu_ingame_active_item > 2)
@@ -200,7 +293,7 @@ void quoridor_menu_ingame_computer(uint8_t north, uint8_t east, uint8_t south, u
         }
         menu_ingame_display_update = 1;
     }
-    if (south)
+    if (north)
     {
         if (menu_ingame_active_item == 0)
         {
@@ -242,14 +335,14 @@ void quoridor_menu_ingame_computer(uint8_t north, uint8_t east, uint8_t south, u
         }
     }
 
-    if (menu_ingame_display_update)
+    if (menu_ingame_display_update)   
     {
-        char title[] = "Machine interrupted... ";
+        char title[] = "Auto paused ";
         char item_0[] = "Continue";
         char item_1[] = "Give up";
         char item_2[] = "Force move";
 
-        menu_display_3_items(menu_ingame_active_item, title, item_0, item_1, item_2);
+        board_menu_display_3_items(menu_ingame_active_item, title, item_0, item_1, item_2);
     }
     menu_ingame_display_update = 0;
 }
@@ -282,20 +375,24 @@ void quoridor_menu_choose_gametype(uint8_t north, uint8_t east, uint8_t south, u
         quoridor_state = STATE_QUORIDOR_INIT;
         program_state = STATE_PROGRAM_GAME_PLAYING;
     }
+    if (toggle)
+    {
+        program_state = STATE_PROGRAM_MENU_START_INIT;
+    }
 
     if (menu_display_update)
     {
         char line_1[] = "       vs";
 
         char player_toNorth_type_text_0[] = "Invalid";
-        char player_toNorth_type_text_1[] = "      Human      ";
-        char player_toNorth_type_text_2[] = "     Auto Easy   ";
-        char player_toNorth_type_text_3[] = "     Auto Hard   ";
+        char player_toNorth_type_text_1[] = "     Human      ";
+        char player_toNorth_type_text_2[] = "    Auto Easy   ";
+        char player_toNorth_type_text_3[] = "    Auto Hard   ";
 
         char player_toSouth_type_text_0[] = "Invalid";
-        char player_toSouth_type_text_1[] = "      Human      ";
-        char player_toSouth_type_text_2[] = "     Auto Easy   ";
-        char player_toSouth_type_text_3[] = "     Auto Hard   ";
+        char player_toSouth_type_text_1[] = "     Human      ";
+        char player_toSouth_type_text_2[] = "    Auto Easy   ";
+        char player_toSouth_type_text_3[] = "    Auto Hard   ";
 
         char *player_toNorth_types_text[4] = {
             player_toNorth_type_text_0,
@@ -310,7 +407,7 @@ void quoridor_menu_choose_gametype(uint8_t north, uint8_t east, uint8_t south, u
 
         char line_3[] = "Choose Game  [v,^]";
 
-        menu_display_game_type(menu_active_item, line_3, player_toNorth_types_text[players_type[0]], line_1, player_toSouth_types_text[players_type[1]]);
+        board_menu_display_game_type(menu_active_item, line_3, player_toNorth_types_text[players_type[0]], line_1, player_toSouth_types_text[players_type[1]]);
     }
     menu_display_update = 0;
 }
@@ -380,20 +477,41 @@ void quoridor_game_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
     case (STATE_QUORIDOR_COMPUTER_L1_TURN_INIT):
     {
         quoridor_display_game_with_time_bar_percentage(100);
-        quoridor_state = STATE_QUORIDOR_COMPUTER_L1_TURN;
-
-        break;
-    }
-    case (STATE_QUORIDOR_COMPUTER_L1_TURN):
-    {
         computer_emphasize_pawn();
 
         autoplay_execute_next_move(1);
 
-        quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_FINISHED;
+        quoridor_state = STATE_QUORIDOR_COMPUTER_L1_TURN;
 
         break;
     }
+
+    case (STATE_QUORIDOR_COMPUTER_L1_TURN):
+    {
+        if (autoplay_paused_get())
+        {
+            quoridor_state = STATE_QUORIDOR_COMPUTER_L1_TURN_PAUSED_INIT;
+        }
+        else
+        {
+            quoridor_state = STATE_QUORIDOR_COMPUTER_TURN_FINISHED;
+        }
+
+        break;
+    }
+    case (STATE_QUORIDOR_COMPUTER_L1_TURN_PAUSED_INIT):
+    {
+        quoridor_menu_ingame_computer_init();
+        quoridor_state = STATE_QUORIDOR_COMPUTER_L1_TURN_PAUSED;
+
+        break;
+    }
+    case (STATE_QUORIDOR_COMPUTER_L1_TURN_PAUSED):
+    {
+        quoridor_menu_ingame_computer(north, east, south, west, enter, toggle);
+        break;
+    }
+
 
     //////////////////// COMPUTER L2
     case (STATE_QUORIDOR_COMPUTER_L2_TURN_INIT):
@@ -444,6 +562,8 @@ void quoridor_game_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
         quoridor_menu_ingame_computer(north, east, south, west, enter, toggle);
         break;
     }
+
+
     case (STATE_QUORIDOR_COMPUTER_TURN_FINISHED):
     {
         quoridor_state = STATE_QUORIDOR_TURN_FINISHED;
@@ -507,6 +627,12 @@ void quoridor_game_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
             game_counter++;
             quoridor_state = STATE_QUORIDOR_INIT;
         }
+        if (toggle)
+        {
+            
+            program_state = STATE_PROGRAM_MENU_GAMETYPE_INIT;
+        }
+
 
         break;
     }

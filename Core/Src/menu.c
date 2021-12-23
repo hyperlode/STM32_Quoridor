@@ -66,7 +66,7 @@
 //         char item_1 [] = "Human battle";
 //         char item_2 [] = "Machine battle";
 
-//         menu_display_3_items(menu_active_item,title, item_0, item_1, item_2);
+//         board_menu_display_3_items(menu_active_item,title, item_0, item_1, item_2);
 //     }
 //     menu_display_update = 0;
 // }

@@ -1,24 +1,9 @@
 #include <string.h>
 #include <stdio.h>
-#include "ssd1306.h"
-#include "quoridor_config.h"
+
 #include "quoridor_board.h"
 
-#define BOARD_CELL_SPACING 7
-#define BOARD_OFFSET_X 0
-#define BOARD_OFFSET_Y 0
 
-#define WALL_CELL_OFFSET_Y 2
-#define WALL_CELL_OFFSET_X 2
-
-#define WALL_CELL_OFFSET_Y 0
-#define WALL_CELL_OFFSET_X 0
-#define WALL_THICKNESS 3
-
-#define PAWN_CELL_OFFSET_X 2
-#define PAWN_CELL_OFFSET_Y 2
-#define PAWN_WIDTH 3
-#define PAWN_HEIGHT 3
 
 static Player players[2];
 static uint8_t move_counter_b;
@@ -32,6 +17,7 @@ static uint8_t move_type;
 static uint8_t error_type;
 int8_t *move_history_deltas;
 
+
 static uint8_t time_bar_percentage_completed;
 
 void oled_init()
@@ -41,28 +27,63 @@ void oled_init()
     time_bar_percentage_completed = 100;
 }
 
-void menu_display_3_items(uint8_t active_item, char *title, char *item_0, char *item_1, char *item_2)
+
+void board_menu_display_3_items(uint8_t active_item, char *title, char *item_0, char *item_1, char *item_2)
 {
     // max
     ssd1306_Fill(White);
-    ssd1306_SetCursor(5, 4);
-    ssd1306_WriteString(title, Font_7x10, Black);
+    // ssd1306_SetCursor(5, 4);
+    // ssd1306_WriteString(title, Font_7x10, Black);
+    
+    for (uint8_t i=0;i<12;i++){
+        ssd1306_Line(
+            0,
+            i,
+            BOARD_X_MAX,
+            i,
+            Black);
+
+    }
+
+    ssd1306_SetCursor(2, 0);
+    ssd1306_WriteString(title, Font_7x10, White);
+
 
     ssd1306_SetCursor(15, 20);
-    ssd1306_WriteString(item_2, Font_7x10, Black);
+    ssd1306_WriteString(item_0, Font_7x10, Black);
 
     ssd1306_SetCursor(15, 34);
     ssd1306_WriteString(item_1, Font_7x10, Black);
 
     ssd1306_SetCursor(15, 48);
-    ssd1306_WriteString(item_0, Font_7x10, Black);
+    ssd1306_WriteString(item_2, Font_7x10, Black);
 
-    board_draw_pawn_row_col(active_item * 2 + 1, 0, 1);
+    //board_draw_pawn_row_col(active_item * 2 + 1, 0, 1);
+    board_draw_pawn(3, 19+14*active_item, 1, 0);
 
     ssd1306_UpdateScreen();
+
+    // // max
+    // ssd1306_Fill(White);
+    // ssd1306_SetCursor(5, 4);
+    // ssd1306_WriteString(title, Font_7x10, Black);
+
+    // ssd1306_SetCursor(15, 20);
+    // ssd1306_WriteString(item_0, Font_7x10, Black);
+
+    // ssd1306_SetCursor(15, 34);
+    // ssd1306_WriteString(item_1, Font_7x10, Black);
+
+    // ssd1306_SetCursor(15, 48);
+    // ssd1306_WriteString(item_2, Font_7x10, Black);
+
+    // //board_draw_pawn_row_col(active_item * 2 + 1, 0, 1);
+    // board_draw_pawn(3, 19+14*active_item, 1, 0);
+
+    // ssd1306_UpdateScreen();
 }
 
-void menu_display_game_type(uint8_t active_item, char *item_0, char *item_1, char *item_2, char *item_3)
+void board_menu_display_game_type(uint8_t active_item, char *item_0, char *item_1, char *item_2, char *item_3)
 {
 
     ssd1306_Fill(White);
@@ -90,12 +111,12 @@ void menu_display_game_type(uint8_t active_item, char *item_0, char *item_1, cha
     ssd1306_WriteString(item_3, Font_7x10, Black);
 
      
-    board_draw_pawn(3, 18, 0, 0);
-    board_draw_pawn(3, 48, 1, 0);
+    board_draw_pawn(BOARD_X_MAX - 10, 18, 0, 0);
+    board_draw_pawn(BOARD_X_MAX - 10, 48, 1, 0);
     ssd1306_UpdateScreen();
 }
 
-void menu_display_4_items(uint8_t active_item, char *item_0, char *item_1, char *item_2, char *item_3)
+void board_menu_display_4_items(uint8_t active_item, char *item_0, char *item_1, char *item_2, char *item_3)
 {
     // max
     ssd1306_Fill(White);
@@ -111,11 +132,11 @@ void menu_display_4_items(uint8_t active_item, char *item_0, char *item_1, char 
     ssd1306_SetCursor(15, 48);
     ssd1306_WriteString(item_3, Font_7x10, Black);
 
-    board_draw_pawn(3, 5+14*(3-active_item), 1, 0);
+    board_draw_pawn(3, 5+14*active_item, 1, 0);
     ssd1306_UpdateScreen();
 }
 
-void menu_display_5_items(uint8_t active_item, char *item_0, char *item_1, char *item_2, char *item_3, char *item_4)
+void board_menu_display_5_items(uint8_t active_item, char *item_0, char *item_1, char *item_2, char *item_3, char *item_4)
 {
     // max
     ssd1306_Fill(White);

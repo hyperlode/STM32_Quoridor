@@ -8,6 +8,7 @@ _BEGIN_STD_C
 
 void quoridor_display_game_with_error_code(uint8_t error_code);
 void human_vs_computer_init();
+void display_game_state();
 
 void quoridor_human_vs_computer_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle);
 
