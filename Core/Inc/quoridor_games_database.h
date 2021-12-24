@@ -5,6 +5,7 @@
 
 _BEGIN_STD_C
 #define OPENING_DATABASE_DUMMY
+
 #ifdef OPENING_DATABASE_DUMMY
 // to be adjusted according to imported data
 #define STORED_GAMES_COUNT 5
