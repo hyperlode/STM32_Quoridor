@@ -3,8 +3,10 @@
 
 #include "quoridor_animation.h"
 
+#define CELLS 162
 uint32_t animation_step_next_millis;
 uint16_t animation_step_counter;
+uint8_t squares [CELLS];
 
 void animation_set_step_counter(uint16_t step)
 {
@@ -18,6 +20,15 @@ void animation_init()
 {
     animation_step_next_millis = HAL_GetTick() + ANIMATION_STEP_MILLIS;
     animation_step_counter = 0;
+
+
+    for (uint8_t i=0;i<CELLS;i++){
+        squares[i] = i;
+    }
+
+    animation_shuffle_array(squares, CELLS);
+
+
 }
 uint8_t animation_ended()
 {
@@ -31,27 +42,55 @@ void animation_next_step_timed()
         animation_step_next_millis = HAL_GetTick() + ANIMATION_STEP_MILLIS;
         animation_step_counter++;
 
-        animation(animation_step_counter);
+        animation_update(animation_step_counter);
     }
 }
 
 void animation_next_step_manual()
 {
     animation_step_counter++;
-    animation(animation_step_counter);
+    animation_update(animation_step_counter);
 }
 
-void animation(uint16_t step)
+void animation_shuffle_array(uint8_t* array, uint16_t length){
+    if (length > 1) 
+    {
+        size_t i;
+        for (i = 0; i < length - 1; i++) 
+        {
+
+        //   rand() % suggested_next_moves_count;
+          int r = rand() %((length - i) - 1);
+          size_t j = i + r ;
+        
+        //   size_t j = i + rand() / (RAND_MAX / (length - i) + 1);
+          int t = array[j];
+          array[j] = array[i];
+          array[i] = t;
+        }
+    }
+}
+
+void animation_update(uint16_t step)
 {
 #define LINES 20
 
     ssd1306_Fill(White);
 
+
+    ssd1306_Line(
+        BOARD_X_MAX,
+        0,
+        BOARD_X_MAX,
+        BOARD_Y_MAX,
+        Black);
+
     if (animation_step_counter < ANIMATION_START_GRID_DISAPPEAR_STEP)
     {
 
         // display grid animation
-        animation_display_grid(animation_step_counter);
+        //animation_display_grid(animation_step_counter);
+        animation_fill_with_white_squares(animation_step_counter);
     }
     else if (animation_step_counter < ANIMATION_START_MOVE_PAWNS_STEP)
     {
@@ -78,50 +117,34 @@ void animation(uint16_t step)
         ssd1306_SetCursor(53, 49);
         ssd1306_WriteString("ameije.com", Font_7x10, Black);
     }
-
-    // display text
-
-    //
-
-    // filled up rectangle
-    // for (uint8_t fill_col=0;fill_col< first_vertical;fill_col++)
-    // {
-    //     for (uint8_t fill_line=0;fill_line<BOARD_CELL_SPACING;fill_line++)
-    //      ssd1306_Line(
-    //             fill_line + fill_col*BOARD_CELL_SPACING,
-    //             0,
-    //             fill_line + fill_col*BOARD_CELL_SPACING,
-    //             first_horizontal * BOARD_CELL_SPACING,
-    //             White);
-    // }
-
-    // // display dots
-    // for (uint8_t rows = 0; rows < first_horizontal; rows++)
-    // {
-    //     for (uint8_t cols = 0; cols < first_vertical; cols++)
-    //     {
-    //         ssd1306_DrawPixel(BOARD_OFFSET_X + cols * BOARD_CELL_SPACING, BOARD_OFFSET_Y + rows * BOARD_CELL_SPACING, Black);
-    //     }
-    // }
-
-    // for (uint8_t i=0;i<animation_step_counter;i++){
-    //    ssd1306_Line(
-    //     // ((BOARD_X_MAX/2) - l/2) +  ,
-    //     animation_step_counter,
-    //     0,
-    //     (BOARD_X_MAX/LINES)*i,
-    //     BOARD_Y_MAX,
-    //     Black);
-    // }
-
-    // ssd1306_Line(
-    //     0,
-    //     animation_step_counter,
-    //     BOARD_X_MAX,
-    //     animation_step_counter,
-    //     Black);
-
     ssd1306_UpdateScreen();
+}
+
+void animation_fill_with_white_squares(uint16_t in_step){
+
+    ssd1306_Fill(Black);
+    uint16_t step = (in_step*0.5) * (in_step*0.5);
+    // uint16_t step = in_step*in_step;
+    
+    if (step >= CELLS){
+        step = CELLS;
+    }
+    for (uint8_t i=0;i<step;i++){
+        animation_white_square(squares[i]%9, squares[i]/9 );
+    }
+    
+    //ssd1306_UpdateScreen();
+}
+
+void animation_white_square(uint8_t row, uint8_t col){
+    
+    for (uint8_t i=1;i<7;i++)
+    ssd1306_Line(
+        BOARD_OFFSET_X + i + (col * BOARD_CELL_SPACING),
+        BOARD_OFFSET_Y + 1 + (row * BOARD_CELL_SPACING),
+        BOARD_OFFSET_X + i + (col * BOARD_CELL_SPACING),
+        BOARD_OFFSET_Y - 1 + ((row + 1) * BOARD_CELL_SPACING),
+        White);
 }
 
 void animation_move_pawns_freely(int16_t in_step)
@@ -145,8 +168,8 @@ void animation_move_pawns_freely(int16_t in_step)
         {{-4, -4}, {4, 4}},
         {{-4, -4}, {4, 5}}};
 
-    board_draw_pawn(21 + pawn_moves[step][0][0], 35 + pawn_moves[step][0][1], 0, 0);
-    board_draw_pawn(63 + pawn_moves[step][1][0], 14 + pawn_moves[step][1][1], 1, 0);
+    board_draw_pawn(21 + pawn_moves[step][0][0], 35 + pawn_moves[step][0][1], 1, 0);
+    board_draw_pawn(63 + pawn_moves[step][1][0], 14 + pawn_moves[step][1][1], 0, 0);
     // board_draw_pawn(10,17,0,0);
     // board_draw_pawn(60,5,1,0);
 }
@@ -173,8 +196,8 @@ void animation_move_pawns(int16_t in_step)
         {{3, 3}, {6, 7}},
         {{3, 3}, {6, 8}},
         {{3, 3}, {6, 9}}};
-    board_draw_pawn_row_col(pawn_moves[step][0][0], pawn_moves[step][0][1], 0);
-    board_draw_pawn_row_col(pawn_moves[step][1][0], pawn_moves[step][1][1], 1);
+    board_draw_pawn_row_col(pawn_moves[step][0][0], pawn_moves[step][0][1], 1);
+    board_draw_pawn_row_col(pawn_moves[step][1][0], pawn_moves[step][1][1], 0);
 }
 void animation_display_text(int16_t in_step)
 {

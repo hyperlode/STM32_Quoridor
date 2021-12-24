@@ -82,7 +82,8 @@ void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
         {
             animation_set_step_counter(0);
         }
-        if (animation_ended() || enter)
+        // if (animation_ended() || enter)
+        if (enter || north || south || east || west)
         {
             program_state = STATE_PROGRAM_MENU_START_INIT;
         }
