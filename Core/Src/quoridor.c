@@ -64,8 +64,6 @@ void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
 
     switch (program_state)
     {
-
-    
     case STATE_PROGRAM_FLASH_ANIMATION_INIT:
     {
         animation_init();
@@ -75,16 +73,19 @@ void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
     }
     case STATE_PROGRAM_FLASH_ANIMATION:
     {
-       animation();
-       if (toggle){
-            animation_set_step_counter(0);
-       }
-        //if (animation_ended()){
-            if (enter){
-            program_state = STATE_PROGRAM_MENU_START_INIT;
+        animation_next_step_timed();
 
-            }
-        //}
+        //    if (east){
+        //        animation_next_step_manual();
+        //    }
+        if (toggle)
+        {
+            animation_set_step_counter(0);
+        }
+        if (animation_ended() || enter)
+        {
+            program_state = STATE_PROGRAM_MENU_START_INIT;
+        }
         break;
     }
     case STATE_PROGRAM_MENU_START_INIT:
@@ -146,6 +147,11 @@ void quoridor_menu_start(uint8_t north, uint8_t east, uint8_t south, uint8_t wes
         menu_display_update = 1;
     }
 
+    if (toggle)
+    {
+        program_state = STATE_PROGRAM_FLASH_ANIMATION_INIT;
+    }
+
     if (enter)
     {
         switch (menu_ingame_active_item)
@@ -189,7 +195,6 @@ void quoridor_menu_ingame_human_init()
     menu_ingame_active_item = 0;
     menu_ingame_display_update = 1;
 }
-
 
 void quoridor_menu_ingame_human(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
 {
@@ -335,7 +340,7 @@ void quoridor_menu_ingame_computer(uint8_t north, uint8_t east, uint8_t south, u
         }
     }
 
-    if (menu_ingame_display_update)   
+    if (menu_ingame_display_update)
     {
         char title[] = "Auto paused ";
         char item_0[] = "Continue";
@@ -512,7 +517,6 @@ void quoridor_game_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
         break;
     }
 
-
     //////////////////// COMPUTER L2
     case (STATE_QUORIDOR_COMPUTER_L2_TURN_INIT):
     {
@@ -562,7 +566,6 @@ void quoridor_game_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
         quoridor_menu_ingame_computer(north, east, south, west, enter, toggle);
         break;
     }
-
 
     case (STATE_QUORIDOR_COMPUTER_TURN_FINISHED):
     {
@@ -629,10 +632,9 @@ void quoridor_game_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
         }
         if (toggle)
         {
-            
+
             program_state = STATE_PROGRAM_MENU_GAMETYPE_INIT;
         }
-
 
         break;
     }

@@ -4,6 +4,7 @@
 #include <_ansi.h>
 #include "ssd1306.h"
 #include "quoridor_config.h"
+#include "quoridor_board.h"
 
 _BEGIN_STD_C
 void animation_set_step_counter(uint16_t step);

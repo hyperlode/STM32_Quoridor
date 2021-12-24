@@ -45,8 +45,8 @@ void board_menu_display_3_items(uint8_t active_item, char *title, char *item_0, 
 
     }
 
-    ssd1306_SetCursor(2, 0);
-    ssd1306_WriteString(title, Font_7x10, White);
+        ssd1306_SetCursor(2, 0);
+        ssd1306_WriteString(title, Font_7x10, White);
 
 
     ssd1306_SetCursor(15, 20);
