@@ -152,13 +152,12 @@ void add_edge(uint8_t start_node, uint8_t node_to_be_connected)
     uint8_t delete_node_index = NOT_FOUND_INDEX;
     uint8_t check_node;
 
-
-
     // search for end
     while (board_graph[start_node][i] != FAKE_NEIGHBOUR)
     {
         // check if node already existing as neighbour
-        if (board_graph[start_node][i] ==node_to_be_connected ){
+        if (board_graph[start_node][i] == node_to_be_connected)
+        {
             raise_error(ERROR_NEIGHBOUR_ALREADY_EXISTING);
         }
 

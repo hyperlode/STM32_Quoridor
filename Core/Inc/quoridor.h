@@ -4,7 +4,7 @@
 
 _BEGIN_STD_C
 #define MAX_MOVES_COUNT 100
-#define MOVES_STRING_LENGTH 100*3  // each move is max 2 chars and a divider
+#define MOVES_STRING_LENGTH 100 * 3 // each move is max 2 chars and a divider
 
 void quoridor_display_game_with_error_code(uint8_t error_code);
 void human_vs_computer_init();
@@ -18,13 +18,11 @@ uint8_t quoridor_human_turn_finished();
 
 void quoridor_human_turn_init();
 
-
 void quoridor_computer_turn_init();
 
 uint8_t quoridor_computer_turn_finished();
 
 void autoplay_game_init();
-
 
 void autoplay_game_next_move();
 void replay_game_init(moves_lode_notation);

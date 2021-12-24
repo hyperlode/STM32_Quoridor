@@ -45,12 +45,11 @@ void animation(uint16_t step)
 {
 #define LINES 20
 
-
     ssd1306_Fill(White);
 
     if (animation_step_counter < ANIMATION_START_GRID_DISAPPEAR_STEP)
     {
-        
+
         // display grid animation
         animation_display_grid(animation_step_counter);
     }
@@ -69,14 +68,15 @@ void animation(uint16_t step)
     {
         animation_display_text(animation_step_counter - ANIMATION_START_GRID_DISAPPEAR_STEP);
         animation_move_pawns_freely(animation_step_counter - ANIMATION_START_SLIDE_PAWNS_STEP);
-    }else{
+    }
+    else
+    {
         animation_display_text(animation_step_counter - ANIMATION_START_GRID_DISAPPEAR_STEP);
         animation_move_pawns_freely(animation_step_counter - ANIMATION_START_SLIDE_PAWNS_STEP);
 
         //set cursor
         ssd1306_SetCursor(53, 49);
         ssd1306_WriteString("ameije.com", Font_7x10, Black);
-
     }
 
     // display text
@@ -127,8 +127,6 @@ void animation(uint16_t step)
 void animation_move_pawns_freely(int16_t in_step)
 {
     // move pawns freely
-
-   
 
     uint8_t step = (in_step) / 2;
 

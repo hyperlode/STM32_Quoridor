@@ -14,9 +14,6 @@ uint16_t suggested_next_moves_count;
 
 uint8_t game_in_opening_database;
 
-
-
-
 uint8_t opening_initiate_next_move_handler()
 {
     //  we need to keep track of all the games that are "still in the running " when a game is played, in order not to analyse everything all the time
@@ -35,10 +32,12 @@ uint8_t opening_initiate_next_move_handler()
     game_in_opening_database = 1;
 }
 
-void opening_initiate_next_move_handler_from_game_moves(uint8_t* moves_indeces, uint8_t moves_indeces_length){
+void opening_initiate_next_move_handler_from_game_moves(uint8_t *moves_indeces, uint8_t moves_indeces_length)
+{
     opening_initiate_next_move_handler();
-    for (uint8_t i=0;i<moves_indeces_length;i++){
-        opening_update_game_move(moves_indeces[i], i+1);
+    for (uint8_t i = 0; i < moves_indeces_length; i++)
+    {
+        opening_update_game_move(moves_indeces[i], i + 1);
     }
 }
 

@@ -13,7 +13,7 @@ void moves_string_to_moves_indeces(char *moves_as_string, uint8_t *moves_as_inde
     uint8_t char_counter_in_move = 0;
 
     char single_move[2];
-   
+
     for (uint8_t i = 0; i < MOVES_STRING_LENGTH; i++)
     {
         char c = moves_as_string[i];
@@ -47,7 +47,7 @@ void moves_string_to_moves_indeces(char *moves_as_string, uint8_t *moves_as_inde
                 single_move[char_counter_in_move] = ' ';
             }
             moves_as_indeces[counter] = get_notation_to_move_index(single_move);
-            
+
             // Add end of game identifier
             counter++;
             single_move[0] = 'X';
@@ -70,7 +70,7 @@ void get_move_index_to_notation(uint8_t index, char *notation)
     notation = move_index_to_notation[index];
 }
 
-uint8_t get_notation_to_move_index(char* move_as_notation)
+uint8_t get_notation_to_move_index(char *move_as_notation)
 {
     uint8_t index;
     if (move_as_notation[0] == 'X')
@@ -91,7 +91,7 @@ uint8_t get_notation_to_move_index(char* move_as_notation)
 uint8_t notation_to_move_index_pawn(char *notation)
 {
     uint8_t index;
-    
+
     switch (notation[0])
     {
     case 'N':
@@ -210,5 +210,3 @@ uint8_t notation_to_move_index_wall(char *wall_position_as_notation)
     }
     return offset - 1 + 8 * (row - 1) + col;
 }
-
-
