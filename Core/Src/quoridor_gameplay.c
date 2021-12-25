@@ -299,8 +299,8 @@ void analyse_possible_moves_pawn(uint8_t player)
             int8_t delta = 0;
             if (player == PLAYER_TO_SOUTH)
             {
-                // pawn on winning node ?
-                if (pawn_moved_node <= 9)
+                // pawn moving to winning node --> no brainer ?
+                if (pawn_moved_node < 9)
                 {
 
                     delta = -1 * DELTA_MAX_WINNING_MOVE_MAGNITUDE;
@@ -314,7 +314,7 @@ void analyse_possible_moves_pawn(uint8_t player)
             }
             else
             {
-                // pawn on winning node?
+                // pawn moving to winning node --> no brainer?
                 if (pawn_moved_node >= 72)
                 {
                     delta = DELTA_MAX_WINNING_MOVE_MAGNITUDE;
