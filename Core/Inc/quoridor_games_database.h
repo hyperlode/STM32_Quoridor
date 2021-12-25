@@ -4,7 +4,7 @@
 #include <_ansi.h>
 
 _BEGIN_STD_C
-#define OPENING_DATABASE_DUMMY
+// #define OPENING_DATABASE_DUMMY
 
 #ifdef OPENING_DATABASE_DUMMY
 // to be adjusted according to imported data
