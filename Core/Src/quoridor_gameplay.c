@@ -9,14 +9,14 @@
 
 static Player players[2];
 
-int8_t moves_delta[MOVE_INDEX_COUNT];                  // store all deltas of moves. Combine with the "move_index_invalidity_score" to only check the relevant indeces.
-uint8_t move_index_invalidity_score[MOVE_INDEX_COUNT]; // move possible=0 , not possible>0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
-uint8_t move_index_invalid_noExit_or_outOfWalls[MOVE_INDEX_COUNT];
+// analysis after player moves (contains info about the next move)
+static BoardInfoAtMove current_move_board_info;
+
+static BoardInfoAtMove board_info_history_by_move_counter[RECORD_MOVES_HISTORY_LENGTH];
+
 uint8_t player_winner_index;
-
 int8_t move_history_deltas_without_jumps[RECORD_MOVES_HISTORY_LENGTH]; // contains the delta change for every move
-
-uint8_t game_history_moves_indeces[RECORD_MOVES_HISTORY_LENGTH]; // contains all moves of a game by move_index
+uint8_t game_history_moves_indeces[RECORD_MOVES_HISTORY_LENGTH];       // contains all moves of a game by move_index
 static uint8_t move_counter;
 
 uint8_t move_indeces_to_reversed[12] = {2, 3, 0, 1, 6, 7, 4, 5, 11, 10, 9, 8};
@@ -46,12 +46,13 @@ void game_init(char *load_game_history_moves_indeces, uint8_t load_game_moves_co
     for (uint8_t i = 0; i < RECORD_MOVES_HISTORY_LENGTH; i++)
     {
         move_history_deltas_without_jumps[i] = 0;
+        board_info_history_by_move_counter[i].is_valid = 0;
     }
 
     for (uint8_t i = 0; i < MOVE_INDEX_COUNT; i++)
     {
-        move_index_invalidity_score[i] = MOVE_INDEX_VALID;
-        move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_VALID;
+        current_move_board_info.move_index_invalidity_score[i] = MOVE_INDEX_VALID;
+        current_move_board_info.move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_VALID;
         // move_index_invalid_since_move[i] = MOVE_INDEX_VALID_MOVE_INFINITY;
     }
     graph_init();
@@ -117,7 +118,7 @@ uint8_t get_player_won(uint8_t player)
     return 0;
 }
 
-void get_all_valid_move_indeces(uint8_t *valid_move_indeces, uint8_t* valid_move_indeces_counter_arg)
+void get_all_valid_move_indeces(uint8_t *valid_move_indeces, uint8_t *valid_move_indeces_counter_arg)
 {
     // provide an array of MOVE_INDEX_COUNT length
 
@@ -143,8 +144,8 @@ void get_all_valid_move_indeces(uint8_t *valid_move_indeces, uint8_t* valid_move
 
 uint8_t get_move_index_valid(uint8_t move_index)
 {
-    uint8_t move_physically_possible_on_board = move_index_invalidity_score[move_index] == MOVE_INDEX_VALID;
-    uint8_t move_not_preventing_pawn_from_winning = move_index_invalid_noExit_or_outOfWalls[move_index] == MOVE_INDEX_VALID;
+    uint8_t move_physically_possible_on_board = current_move_board_info.move_index_invalidity_score[move_index] == MOVE_INDEX_VALID;
+    uint8_t move_not_preventing_pawn_from_winning = current_move_board_info.move_index_invalid_noExit_or_outOfWalls[move_index] == MOVE_INDEX_VALID;
 
     return (move_physically_possible_on_board && move_not_preventing_pawn_from_winning);
 }
@@ -156,7 +157,7 @@ uint8_t get_walls_placed(uint8_t player)
 
 int8_t get_delta_of_move_index(uint8_t move_index)
 {
-    return moves_delta[move_index];
+    return current_move_board_info.moves_delta[move_index];
 }
 
 int8_t get_delta_of_move_index_normalized(uint8_t move_index)
@@ -171,7 +172,7 @@ int8_t get_delta_of_move_index_normalized(uint8_t move_index)
     {
         delta_to_absolute_value = 1;
     }
-    return moves_delta[move_index] * delta_to_absolute_value;
+    return current_move_board_info.moves_delta[move_index] * delta_to_absolute_value;
 }
 
 uint8_t get_best_pawn_move()
@@ -214,17 +215,36 @@ void get_winning_distances(uint8_t *distances)
     distances[1] = graph_get_distance_to_winning_square(1, pawn_get_position_as_node_index(1));
 }
 
-
-
-
 ////////////////////////
-//////////////// ANALYSE 
+//////////////// ANALYSE
 ////////////////////////
 
 void analyse_possible_moves(uint8_t player)
 {
     analyse_possible_moves_pawn(player);
     analyse_possible_moves_walls(player);
+
+    // although wall placements also affect the data, this is a good moment to save our board info state
+
+    // save current board info state to specific buffer
+    copy_board_info(&current_move_board_info, &board_info_history_by_move_counter[move_counter], move_counter, 1);
+}
+
+void copy_board_info(BoardInfoAtMove *original, BoardInfoAtMove *dest, uint8_t move_counter, uint8_t is_valid)
+{
+
+    memcpy(dest->moves_delta, original->moves_delta, RECORD_MOVES_HISTORY_LENGTH);
+    memcpy(dest->move_index_invalidity_score, original->move_index_invalidity_score, RECORD_MOVES_HISTORY_LENGTH);
+    memcpy(dest->move_index_invalid_noExit_or_outOfWalls, original->move_index_invalid_noExit_or_outOfWalls, RECORD_MOVES_HISTORY_LENGTH);
+
+    // for(uint8_t i=0;i<RECORD_MOVES_HISTORY_LENGTH;i++){
+    //     dest->moves_delta[i] = original->moves_delta[i];
+    //     dest->move_index_invalidity_score[i] = original->move_index_invalidity_score[i];
+    //     dest->move_index_invalid_noExit_or_outOfWalls[i] = original->move_index_invalid_noExit_or_outOfWalls[i];
+    // }
+
+    dest->move_counter = move_counter;
+    dest->is_valid = is_valid;
 }
 
 void analyse_possible_moves_walls(uint8_t player)
@@ -233,11 +253,10 @@ void analyse_possible_moves_walls(uint8_t player)
 
     if (players[player].walls_placed >= PLAYER_MAX_WALL_COUNT)
     {
-        
 
         for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++)
         {
-            move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_INVALID;
+            current_move_board_info.move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_INVALID;
         }
 
         return;
@@ -247,7 +266,7 @@ void analyse_possible_moves_walls(uint8_t player)
     // are there routes for both pawns to a winning square?
     for (uint8_t i = MOVE_INDEX_FIRST_WALL; i < MOVE_INDEX_COUNT; i++)
     {
-        if (move_index_invalidity_score[i] == MOVE_INDEX_VALID)
+        if (current_move_board_info.move_index_invalidity_score[i] == MOVE_INDEX_VALID)
         {
             graph_wall_add(i);
             int8_t delta;
@@ -255,16 +274,16 @@ void analyse_possible_moves_walls(uint8_t player)
                 pawn_get_position_as_node_index(0),
                 pawn_get_position_as_node_index(1));
 
-            moves_delta[i] = delta;
+            current_move_board_info.moves_delta[i] = delta;
 
             if (delta == PAWN_TARGET_NOT_REACHABLE)
             {
 
-                move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_INVALID;
+                current_move_board_info.move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_INVALID;
             }
             else
             {
-                move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_VALID;
+                current_move_board_info.move_index_invalid_noExit_or_outOfWalls[i] = MOVE_INDEX_VALID;
             }
 
             graph_wall_remove(i);
@@ -282,12 +301,12 @@ void analyse_possible_moves_pawn(uint8_t player)
 
         if (!valid)
         {
-            moves_delta[move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
-            move_index_invalidity_score[move_index] = 1;
+            current_move_board_info.moves_delta[move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
+            current_move_board_info.move_index_invalidity_score[move_index] = 1;
         }
         else
         {
-            move_index_invalidity_score[move_index] = MOVE_INDEX_VALID;
+            current_move_board_info.move_index_invalidity_score[move_index] = MOVE_INDEX_VALID;
 
             // calculate delta for the given move.
 
@@ -326,7 +345,7 @@ void analyse_possible_moves_pawn(uint8_t player)
                         pawn_get_position_as_node_index(1));
                 }
             }
-            moves_delta[move_index] = delta;
+            current_move_board_info.moves_delta[move_index] = delta;
         }
     }
 }
@@ -342,11 +361,9 @@ uint8_t get_move_counter()
 //     make_move(move_index);
 // };
 
-
 ////////////////////////
 //////////////// MAKE MOVE
 ////////////////////////
-
 
 uint8_t make_move_if_valid(uint8_t move_index)
 {
@@ -364,7 +381,8 @@ uint8_t make_move_if_valid(uint8_t move_index)
     make_move(move_index);
     return 1;
 }
-
+#pragma GCC push_options
+#pragma GCC optimize("O0")
 void make_move(uint8_t move_index)
 {
     // store delta in move history (this does not take into account the other pawn.)
@@ -381,7 +399,7 @@ void make_move(uint8_t move_index)
     // it will ASSERT error at invalid moves.
 
     // check if move is in the possible moves list
-    if (move_index_invalidity_score[move_index] != MOVE_INDEX_VALID)
+    if (current_move_board_info.move_index_invalidity_score[move_index] != MOVE_INDEX_VALID)
     {
         raise_error(ERROR_NOT_A_VALID_MOVE_ON_THIS_BOARD);
     }
@@ -411,12 +429,14 @@ void make_move(uint8_t move_index)
     }
 
     game_history_moves_indeces[move_counter] = move_index;
+
     move_counter++;
 
     // prepare for next move
     opening_update_game_move(move_index, move_counter);
     analyse_possible_moves(get_playing_player());
 }
+#pragma GCC pop_options
 
 void undo_last_move()
 {
@@ -451,20 +471,6 @@ void undo_last_move()
 
         // set back validities of affected wall positions
         adjust_affected_walls_validity_scores(previous_move_index, 0);
-
-        // // undo "invalidity due to complete block"
-        // for (uint8_t i=0;i<MOVE_INDEX_COUNT;i++){
-        //     if (move_counter == move_index_invalid_since_move[i] ){
-        //         if (move_index_invalidity_score[i] >0){
-        //             move_index_invalidity_score[i] --;
-
-        //         }else{
-        //             // ASSERT ERROR: how did a move index become invalid at a certain move if it's actually indicated as valid?
-        //             raise_error(ERROR_INCONSISTENCY_IN_INVALID_MOVE_DUE_TO_NO_EXIT);
-        //         }
-        //         move_index_invalid_since_move[i] = MOVE_INDEX_VALID_MOVE_INFINITY;
-        //     }
-        // }
     }
 
     move_history_deltas_without_jumps[move_counter] = 0;
@@ -472,7 +478,22 @@ void undo_last_move()
 
     // reset opening database searcher
     opening_initiate_next_move_handler_from_game_moves(game_history_moves_indeces, move_counter);
+
+#define USE_BUFFERED_BOARD_INFO
+
+#ifdef USE_BUFFERED_BOARD_INFO
+    // speeds computer player up by 40 procent. if memory footprint would be too high, use preserve last 2 or 3 moves. But, not an issue right now.
+    if (board_info_history_by_move_counter[move_counter].is_valid)
+    {
+        copy_board_info(&board_info_history_by_move_counter[move_counter], &current_move_board_info, move_counter, 1);
+    }
+    else
+    {
+        analyse_possible_moves(get_playing_player());
+    }
+#else
     analyse_possible_moves(get_playing_player());
+#endif
 }
 
 ////////////////////////
@@ -665,7 +686,7 @@ uint8_t check_move_possible_pawn_L_jump(player, start_node, direction_1, directi
 }
 
 /////////////////////////
-/////////// WALL ACTIONS 
+/////////// WALL ACTIONS
 ////////////////////////
 
 uint8_t make_move_wall(uint8_t player, uint8_t move_index)
@@ -774,16 +795,16 @@ void adjust_wall_invalidity_score(uint8_t row, uint8_t col, uint8_t dir, uint8_t
 
     if (increase_invalidity_else_decrease)
     {
-        move_index_invalidity_score[invalid_move_index]++;
+        current_move_board_info.move_index_invalidity_score[invalid_move_index]++;
     }
     else
     {
-        if (move_index_invalidity_score[invalid_move_index] > 0)
+        if (current_move_board_info.move_index_invalidity_score[invalid_move_index] > 0)
         {
-            move_index_invalidity_score[invalid_move_index]--;
+            current_move_board_info.move_index_invalidity_score[invalid_move_index]--;
         }
     }
-    moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
+    current_move_board_info.moves_delta[invalid_move_index] = FAKE_DELTA_FOR_INVALID_MOVE;
 }
 
 uint8_t wall_row_col_dir_to_move_index(uint8_t *row_col_dir)
@@ -862,8 +883,6 @@ void walls_get_all_positions(uint8_t *positions, uint8_t player)
         positions[i * 3 + 2] = players[player].walls[i].horizontal_else_vertical;
     }
 }
-
-
 
 void make_move_pawn(uint8_t player, uint8_t move_index)
 {
