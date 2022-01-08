@@ -108,13 +108,13 @@ uint8_t autoplay_get_best_next_move_L2(uint8_t player)
 
     get_all_valid_move_indeces(L2_valid_moves, L2_valid_moves_deltas, &L2_move_count);
 
-    // // check for winning move. 
-    // for (uint8_t i=0;i<L2_move_count;i++){
+    // check for winning move. 
+    for (uint8_t i=0;i<L2_move_count;i++){
 
-    //     if (L2_valid_moves_deltas[i] == DELTA_MAX_WINNING_MOVE_MAGNITUDE){
-    //         return L2_valid_moves[i];
-    //     }
-    // }
+        if (L2_valid_moves_deltas[i] == DELTA_MAX_WINNING_MOVE_MAGNITUDE){
+            return L2_valid_moves[i];
+        }
+    }
 
     // l2 means, we're looking at the opponent. We're looking for the least bad move the opponent can make.
     // this is: at the opponents move: a good delta for it is as high as possible. We need that delta to be as small as possible. so +127 is worst case scenario
