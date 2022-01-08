@@ -135,13 +135,15 @@ int main(void)
 
     uint8_t button_pressed_edge_memory;
 
-    char moves_lode_notation[MOVES_STRING_LENGTH] = "N,S,1d,S,1f,S,1h,E,c1";
+    // char moves_lode_notation[MOVES_STRING_LENGTH] = "N,3d,N,3f,2c,2e,E,S,a1,b1,c1,d1,e1,f1,g1,h1,a8,b8,c8,d8,e8,S,g8,S,h8,S,W"; //26
+    // char moves_lode_notation[MOVES_STRING_LENGTH] = "N,3d,N,3f,2c,2e,E,S,a1,b1,c1,d1,e1,f1,g1,h1,a8,b8,c8,d8,e8,S,g8,S,h8,S,W,N,E,N,E,S,E,N,N,S,N,S,N,N,N,N,N,S"; //44
+       char moves_lode_notation[MOVES_STRING_LENGTH] = "N,3d,N,3f,2c,2e,E,S,a1,b1,c1,d1,e1,f1,g1,h1,a8,b8,c8,d8,e8,S,g8,S,h8,S,W,N,E,N,E,S,E,N,N,S,N,S,N,E,N,S,N"; //43
+    // char moves_lode_notation[MOVES_STRING_LENGTH] = "N,S,1d,S,1f,S,1h,E,c1"; //9
     // char moves_lode_notation[MOVES_STRING_LENGTH] = "N,S,N,S,N,S,2d,4d,2f,E,2b,a1,E,E,N,5f,E,E,2h,g4,c5,S,c3,N,c7,8b,3h,W,W,W,W,N,N,6d,f6,N,E,W,N,7e,W,N,W,8d,f8,W,N,W,E,W,E,W,N";
     //char moves_lode_notation [MOVES_STRING_LENGTH] = "h1,N,S,N,S,N,S,N,SS,a2,h3";
     //char moves_lode_notation [MOVES_STRING_LENGTH] = "2b,d2,N,S,N,S,N,S,N,SS,a2,h3";
 
-    quoridor_lode_load_game_history_as_one_string(moves_lode_notation, 9);
-    quoridor_init();
+    quoridor_init(moves_lode_notation, 0);
 
     button_interupt_set_button(0, GPIOE, GPIO_PIN_15);
 

@@ -19,7 +19,7 @@ int8_t move_history_deltas_without_jumps[RECORD_MOVES_HISTORY_LENGTH]; // contai
 uint8_t game_history_moves_indeces[RECORD_MOVES_HISTORY_LENGTH];       // contains all moves of a game by move_index
 static uint8_t move_counter;
 
-uint8_t move_indeces_to_reversed[12] = {2, 3, 0, 1, 6, 7, 4, 5, 11, 10, 9, 8};
+
 
 void game_init(char *load_game_history_moves_indeces, uint8_t load_game_moves_count)
 {
@@ -45,7 +45,8 @@ void game_init(char *load_game_history_moves_indeces, uint8_t load_game_moves_co
 
     for (uint8_t i = 0; i < RECORD_MOVES_HISTORY_LENGTH; i++)
     {
-        move_history_deltas_without_jumps[i] = 0;
+        move_history_deltas_without_jumps[i] = FAKE_DELTA_FOR_INVALID_MOVE;
+        game_history_moves_indeces[i] = MOVE_INDEX_DUMMY;
         board_info_history_by_move_counter[i].is_valid = 0;
     }
 
@@ -65,8 +66,17 @@ void game_init(char *load_game_history_moves_indeces, uint8_t load_game_moves_co
     // load game
     for (uint8_t i = 0; i < load_game_moves_count; i++)
     {
-        make_move(load_game_history_moves_indeces[i]);
+        uint8_t success;
+        success = make_move_if_valid(load_game_history_moves_indeces[i]);
+        if (!success){
+            raise_error(ERROR_INVALID_MOVE_FROM_LOADED_GAME);
+        }
     }
+}
+
+void get_history_moves_indeces(uint8_t* moves_history){
+    // moves_history = game_history_moves_indeces; 
+    memcpy(moves_history, game_history_moves_indeces, RECORD_MOVES_HISTORY_LENGTH);
 }
 
 uint8_t get_winner_index()
@@ -118,7 +128,7 @@ uint8_t get_player_won(uint8_t player)
     return 0;
 }
 
-void get_all_valid_move_indeces(uint8_t *valid_move_indeces, uint8_t *valid_move_indeces_counter_arg)
+void get_all_valid_move_indeces(uint8_t *valid_move_indeces, uint8_t* valid_moves_deltas, uint8_t *valid_move_indeces_counter_arg)
 {
     // provide an array of MOVE_INDEX_COUNT length
 
@@ -129,6 +139,7 @@ void get_all_valid_move_indeces(uint8_t *valid_move_indeces, uint8_t *valid_move
         if (get_move_index_valid(i))
         {
             valid_move_indeces[valid_move_indeces_counter] = i;
+            valid_moves_deltas[valid_move_indeces_counter] = current_move_board_info.moves_delta[i];
             valid_move_indeces_counter++;
         }
     }
@@ -163,13 +174,15 @@ int8_t get_delta_of_move_index(uint8_t move_index)
 int8_t get_delta_of_move_index_normalized(uint8_t move_index)
 {
     // for each player equal: higher delta = better.  (positive delta = winning, negative=losing)
-    uint8_t delta_to_absolute_value;
+    int8_t delta_to_absolute_value;
     if (get_playing_player())
     {
+        // to south
         delta_to_absolute_value = -1;
     }
     else
     {
+        // to north player
         delta_to_absolute_value = 1;
     }
     return current_move_board_info.moves_delta[move_index] * delta_to_absolute_value;
@@ -431,11 +444,17 @@ void make_move(uint8_t move_index)
     game_history_moves_indeces[move_counter] = move_index;
 
     move_counter++;
+    // more than RECORD_MOVES_HISTORY_LENGTH, it's not gonna happen!
+    if ( move_counter >= RECORD_MOVES_HISTORY_LENGTH)
+    {
+        raise_error(ERROR_MOVES_COUNTER_OVERFLOW);
+    }
 
     // prepare for next move
     opening_update_game_move(move_index, move_counter);
     analyse_possible_moves(get_playing_player());
 }
+
 #pragma GCC pop_options
 
 void undo_last_move()
@@ -473,7 +492,11 @@ void undo_last_move()
         adjust_affected_walls_validity_scores(previous_move_index, 0);
     }
 
-    move_history_deltas_without_jumps[move_counter] = 0;
+    // erase move from history
+    move_history_deltas_without_jumps[move_counter] = FAKE_DELTA_FOR_INVALID_MOVE;
+    game_history_moves_indeces[move_counter] = MOVE_INDEX_DUMMY;
+
+    board_info_history_by_move_counter[move_counter].is_valid = 0;
     move_counter--;
 
     // reset opening database searcher
@@ -482,6 +505,7 @@ void undo_last_move()
 #define USE_BUFFERED_BOARD_INFO
 
 #ifdef USE_BUFFERED_BOARD_INFO
+
     // speeds computer player up by 40 procent. if memory footprint would be too high, use preserve last 2 or 3 moves. But, not an issue right now.
     if (board_info_history_by_move_counter[move_counter].is_valid)
     {

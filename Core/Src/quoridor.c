@@ -42,7 +42,7 @@ void quoridor_display_game_with_time_bar_percentage(uint8_t percentage_completed
     display_game_state();
 }
 
-void quoridor_init()
+void quoridor_init(char* loaded_game_history_moves_indeces_string, uint8_t loaded_game_history_moves_count)
 {
     quoridor_state = STATE_QUORIDOR_INIT;
     program_state = STATE_PROGRAM_FLASH_ANIMATION_INIT;
@@ -55,8 +55,14 @@ void quoridor_init()
     function_pointer = &quoridor_display_game_with_time_bar_percentage;
     autoplay_display_time_callback(function_pointer);
 
-    players_type[0] = PLAYER_HUMAN;
-    players_type[1] = PLAYER_COMPUTER_L1;
+    players_type[0] = PLAYER_COMPUTER_L2;
+    players_type[1] = PLAYER_HUMAN;
+    // players_type[0] = PLAYER_HUMAN;
+    // players_type[1] = PLAYER_COMPUTER_L1;
+
+    loaded_game_history_moves_indeces_length = loaded_game_history_moves_count;
+    quoridor_lode_load_game_history_as_one_string(loaded_game_history_moves_indeces_string, loaded_game_history_moves_count);
+
 }
 
 void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t west, uint8_t enter, uint8_t toggle)
@@ -80,9 +86,9 @@ void program_state_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
         //    }
         if (toggle)
         {
-            animation_set_step_counter(0);
+            program_state = STATE_PROGRAM_FLASH_ANIMATION_INIT;
         }
-        // if (animation_ended() || enter)
+
         if (enter || north || south || east || west)
         {
             program_state = STATE_PROGRAM_MENU_START_INIT;
@@ -433,8 +439,8 @@ void quoridor_game_manager(uint8_t north, uint8_t east, uint8_t south, uint8_t w
     {
     case (STATE_QUORIDOR_INIT):
     {
-        game_init(NULL, 0);
-        //game_init(loaded_game_history_moves_indeces, loaded_game_history_moves_indeces_length);
+        //game_init(NULL, 0);
+        game_init(loaded_game_history_moves_indeces, loaded_game_history_moves_indeces_length);
         quoridor_state = STATE_QUORIDOR_TURN_INIT;
         break;
     }

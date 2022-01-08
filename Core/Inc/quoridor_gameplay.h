@@ -2,8 +2,22 @@
 #define QUORIDOR_GAMEPLAY_H
 
 #include <_ansi.h>
+#include "quoridor_config.h"
 
 _BEGIN_STD_C
+
+
+struct BoardInfoAtMove{
+int8_t moves_delta[MOVE_INDEX_COUNT];                  // store all deltas of moves. Combine with the "move_index_invalidity_score" to only check the relevant indeces.
+uint8_t move_index_invalidity_score[MOVE_INDEX_COUNT]; // move possible=0 , not possible>0; The pawn moves have to be revisited at every move. Walls are easier. Once placed, they're fixed.
+uint8_t move_index_invalid_noExit_or_outOfWalls[MOVE_INDEX_COUNT];
+uint8_t move_counter;
+uint8_t is_valid;
+};
+
+typedef struct BoardInfoAtMove BoardInfoAtMove;
+
+
 
 void game_init(char* load_game_history, uint8_t load_game_moves_count);
 
