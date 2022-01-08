@@ -261,16 +261,23 @@ void board_state_update(uint8_t *player_1_pos, uint8_t *player_2_pos, uint8_t pl
         }
     }
 }
-
-void board_info_draw()
+void draw_game_history_by_paths_delta()
 {
+    // x-axis: moves counter
+    // y-axis: path delta. negative or positive, depending on which player has shortest path
+        // positive delta = player to South is winning
 
-    // delta history graph can be overwritten by other items (because of it's unboundedness.)
     for (uint8_t i = 0; i < RECORD_MOVES_HISTORY_LENGTH; i++)
     {
-
         int8_t deltaOffset = move_history_deltas[i];
-        // if (deltaOffset > 0){
+
+// #define ALWAYS_SHOW_X_AXIS
+#ifdef ALWAYS_SHOW_X_AXIS
+
+        if (deltaOffset == FAKE_DELTA_FOR_INVALID_MOVE)
+        {
+            deltaOffset = 0;
+        }
         ssd1306_Line(
             BOARD_MENU_X_OFFSET + i,
             BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT + 2 * BOARD_MENU_ROW_HEIGHT + 5,
@@ -278,8 +285,26 @@ void board_info_draw()
             BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT + 2 * BOARD_MENU_ROW_HEIGHT + 5 + deltaOffset,
             Black);
 
-        // }
+#else
+        if (deltaOffset != FAKE_DELTA_FOR_INVALID_MOVE)
+        {
+
+            ssd1306_Line(
+                BOARD_MENU_X_OFFSET + i,
+                BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT + 2 * BOARD_MENU_ROW_HEIGHT + 5,
+                BOARD_MENU_X_OFFSET + i,
+                BOARD_MENU_Y_OFFSET + BOARD_MENU_ROW_TITLE_HEIGHT + 2 * BOARD_MENU_ROW_HEIGHT + 5 + deltaOffset,
+                Black);
+        }
+
+#endif
     }
+}
+
+void board_info_draw()
+{
+    // game progress
+    draw_game_history_by_paths_delta(); // delta history graph can be overwritten by other items (because of it's unboundedness.)
 
     // column titles
     uint8_t player_to_north_active = (move_counter_b % 2 == 0);
