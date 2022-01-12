@@ -36,13 +36,22 @@ BUILD_DIR = build
 ######################################
 # C sources
 C_SOURCES =  \
+Core/Src/button_interrupt.c \
+Core/Src/buttons.c \
+Core/Src/eeprom.c \
+Core/Src/human_player.c \
 Core/Src/main.c \
+Core/Src/menu.c \
 Core/Src/quoridor.c \
+Core/Src/quoridor_animation.c \
 Core/Src/quoridor_autoplay.c \
 Core/Src/quoridor_board.c \
+Core/Src/quoridor_error.c \
 Core/Src/quoridor_gameplay.c \
+Core/Src/quoridor_games_database.c \
 Core/Src/quoridor_graph.c \
 Core/Src/quoridor_notation.c \
+Core/Src/quoridor_tests.c \
 Core/Src/stm32f4xx_hal_msp.c \
 Core/Src/stm32f4xx_it.c \
 Core/Src/system_stm32f4xx.c \

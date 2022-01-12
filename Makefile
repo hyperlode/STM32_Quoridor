@@ -74,6 +74,7 @@ Drivers/ssd1306/ssd1306_tests.c \
 Drivers/ssd1306/ssd1306.c \
 Core/Src/quoridor_board.c \
 Core/Src/quoridor.c \
+Core/Src/eeprom.c \
 Core/Src/quoridor_autoplay.c \
 Core/Src/quoridor_gameplay.c \
 Core/Src/quoridor_graph.c \
